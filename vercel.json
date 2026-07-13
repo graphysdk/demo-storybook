@@ -1,0 +1,8 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "buildCommand": "echo 'prebuilt static files'",
+  "devCommand": "pnpm dev",
+  "installCommand": "echo 'prebuilt static files'",
+  "framework": "storybook",
+  "outputDirectory": "./storybook-static"
+}
