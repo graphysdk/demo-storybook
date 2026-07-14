@@ -1,0 +1,32 @@
+/* Responsive trio band: 1 card per row in a narrow container, 2 + 1 (last card
+   spans the full width) in a medium container, and 3 across in a wide container.
+   Wrap the grid in .trioContainer to establish the query container, and set the
+   gap inline on the .trio element. */
+.trioContainer {
+  container-type: inline-size;
+}
+
+.trio {
+  display: grid;
+  grid-template-columns: 1fr;
+}
+
+@container (min-width: 640px) {
+  .trio {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .trio > :last-child {
+    grid-column: 1 / -1;
+  }
+}
+
+@container (min-width: 1280px) {
+  .trio {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .trio > :last-child {
+    grid-column: auto;
+  }
+}

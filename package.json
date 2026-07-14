@@ -1,5 +1,5 @@
 {
-  "name": "demo-storybook",
+  "name": "@graphyapp/demo-storybook",
   "version": "0.0.1",
   "private": true,
   "type": "module",
@@ -18,8 +18,8 @@
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.1",
     "@graphysdk/i18n": "1.7.1",
-    "@graphysdk/react-renderer": "0.0.1-alpha.6",
-    "@graphysdk/viz-engine": "0.0.1-alpha.6",
+    "@graphysdk/react-renderer": "0.0.1-alpha.20260714170734",
+    "@graphysdk/viz-engine": "0.0.1-alpha.20260714170734",
     "@storybook/addon-docs": "^10.1.11",
     "@storybook/addon-themes": "^10.2.0",
     "@storybook/builder-vite": "^10.2.19",

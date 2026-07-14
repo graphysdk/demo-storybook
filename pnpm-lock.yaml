@@ -18,11 +18,11 @@ importers:
         specifier: 1.7.1
         version: 1.7.1(react-intl@8.2.0(@types/react@19.2.17)(react@19.2.7)(typescript@5.9.3))(react@19.2.7)
       '@graphysdk/react-renderer':
-        specifier: 0.0.1-alpha.6
-        version: 0.0.1-alpha.6(@emotion/is-prop-valid@1.4.0)(@floating-ui/dom@1.8.0)(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(babel-plugin-macros@3.1.0)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(typescript@5.9.3)(use-sync-external-store@1.6.0(react@19.2.7))
+        specifier: 0.0.1-alpha.20260714170734
+        version: 0.0.1-alpha.20260714170734(4871fdacf356d788918b08d12ccc5cb2)
       '@graphysdk/viz-engine':
-        specifier: 0.0.1-alpha.6
-        version: 0.0.1-alpha.6(react-intl@8.2.0(@types/react@19.2.17)(react@19.2.7)(typescript@5.9.3))(react@19.2.7)
+        specifier: 0.0.1-alpha.20260714170734
+        version: 0.0.1-alpha.20260714170734(react-intl@8.2.0(@types/react@19.2.17)(react@19.2.7)(typescript@5.9.3))(react@19.2.7)
       '@storybook/addon-docs':
         specifier: ^10.1.11
         version: 10.5.0(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(esbuild@0.28.1)(rollup@4.62.2)(storybook@10.5.0(@types/react@19.2.17)(prettier@3.9.5)(react@19.2.7))(vite@6.4.3(@types/node@26.1.1)(lightningcss@1.32.0))
@@ -780,13 +780,28 @@ packages:
       react-intl:
         optional: true
 
-  '@graphysdk/react-renderer@0.0.1-alpha.6':
-    resolution: {integrity: sha512-HscT0NK6o7JVl9RlqhoBsVfqdtcseIkNjqp1ZaMNbQYBil+/yC5TintSSPHMhavnBlV8KGK4DIJXARryuzZK3g==}
+  '@graphysdk/react-renderer@0.0.1-alpha.20260714170734':
+    resolution: {integrity: sha512-ghg5GdzW0sBMwKKWVR5GLNzEAyHwgjxZEFhvny2BbTAS/CAKTzOY8NLzxe6m7o6WO+KNqiGYRFf4jwGf2aeCtw==}
     peerDependencies:
+      '@tiptap/core': ^3.0.0
+      '@tiptap/extension-bold': ^3.0.0
+      '@tiptap/extension-document': ^3.0.0
+      '@tiptap/extension-hard-break': ^3.0.0
+      '@tiptap/extension-heading': ^3.0.0
+      '@tiptap/extension-italic': ^3.0.0
+      '@tiptap/extension-link': ^3.0.0
+      '@tiptap/extension-paragraph': ^3.0.0
+      '@tiptap/extension-text': ^3.0.0
+      '@tiptap/extension-text-align': ^3.0.0
+      '@tiptap/extension-text-style': ^3.0.0
+      '@tiptap/extension-underline': ^3.0.0
+      '@tiptap/extensions': ^3.0.0
+      '@tiptap/pm': ^3.0.0
+      '@tiptap/react': ^3.0.0
       react: ^19.0.0
 
-  '@graphysdk/viz-engine@0.0.1-alpha.6':
-    resolution: {integrity: sha512-QlWF+LxH8rDtHFgSRG1yKUd9IFchsNy3d0UaW9B23vpSIUhGhXU98HF45WvyJHt1G6IU5LauLeMi/6iK/TSKOA==}
+  '@graphysdk/viz-engine@0.0.1-alpha.20260714170734':
+    resolution: {integrity: sha512-BiaHCxXEj0yh8TixWJ02Ow2J2cv4wjo8Rg30EGt2jG/LsHS9+X/VVOW6WnLOi1dKCOT2VhBm0eSHH8hloPe8BQ==}
 
   '@humanfs/core@0.19.2':
     resolution: {integrity: sha512-UhXNm+CFMWcbChXywFwkmhqjs3PRCmcSa/hfBgLIb7oQ5HNb1wS0icWsGtSAUNgefHeI+eBrA8I1fxmbHsGdvA==}
@@ -4645,12 +4660,12 @@ snapshots:
       react: 19.2.7
       react-intl: 8.2.0(@types/react@19.2.17)(react@19.2.7)(typescript@5.9.3)
 
-  '@graphysdk/react-renderer@0.0.1-alpha.6(@emotion/is-prop-valid@1.4.0)(@floating-ui/dom@1.8.0)(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(babel-plugin-macros@3.1.0)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)(typescript@5.9.3)(use-sync-external-store@1.6.0(react@19.2.7))':
+  '@graphysdk/react-renderer@0.0.1-alpha.20260714170734(4871fdacf356d788918b08d12ccc5cb2)':
     dependencies:
       '@base-ui/react': 1.6.0(@types/react@19.2.17)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       '@floating-ui/react-dom': 2.1.9(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       '@graphysdk/i18n': 1.7.1(react-intl@8.2.0(@types/react@19.2.17)(react@19.2.7)(typescript@5.9.3))(react@19.2.7)
-      '@graphysdk/viz-engine': 0.0.1-alpha.6(react-intl@8.2.0(@types/react@19.2.17)(react@19.2.7)(typescript@5.9.3))(react@19.2.7)
+      '@graphysdk/viz-engine': 0.0.1-alpha.20260714170734(react-intl@8.2.0(@types/react@19.2.17)(react@19.2.7)(typescript@5.9.3))(react@19.2.7)
       '@tiptap/core': 3.27.3(@tiptap/pm@3.27.3)
       '@tiptap/extension-bold': 3.27.3(@tiptap/core@3.27.3(@tiptap/pm@3.27.3))
       '@tiptap/extension-document': 3.27.3(@tiptap/core@3.27.3(@tiptap/pm@3.27.3))
@@ -4679,9 +4694,7 @@ snapshots:
     transitivePeerDependencies:
       - '@date-fns/tz'
       - '@emotion/is-prop-valid'
-      - '@floating-ui/dom'
       - '@types/react'
-      - '@types/react-dom'
       - babel-plugin-macros
       - date-fns
       - encoding
@@ -4690,7 +4703,7 @@ snapshots:
       - typescript
       - use-sync-external-store
 
-  '@graphysdk/viz-engine@0.0.1-alpha.6(react-intl@8.2.0(@types/react@19.2.17)(react@19.2.7)(typescript@5.9.3))(react@19.2.7)':
+  '@graphysdk/viz-engine@0.0.1-alpha.20260714170734(react-intl@8.2.0(@types/react@19.2.17)(react@19.2.7)(typescript@5.9.3))(react@19.2.7)':
     dependencies:
       '@graphysdk/i18n': 1.7.1(react-intl@8.2.0(@types/react@19.2.17)(react@19.2.7)(typescript@5.9.3))(react@19.2.7)
       arquero: 5.4.1

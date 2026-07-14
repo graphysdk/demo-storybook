@@ -1,7 +1,7 @@
 import type { Meta, StoryObj } from '@storybook/react';
 
 import { GraphRenderer } from '@graphysdk/react-renderer';
-import type { Data } from '@graphysdk/viz-engine';
+import type { BarGeomParams, Data } from '@graphysdk/viz-engine';
 import { config, coord, createSpec, geom, mapping, pipe, scale, transform } from '@graphysdk/viz-engine';
 
 import { ResizablePlotDecorator } from '../../addons/ResizablePlotDecorator';
@@ -9,18 +9,55 @@ import { VizStoryGraphProvider } from '../../components/VizStoryGraphProvider';
 
 type BarGraphArgs = {
   flipped: boolean;
+  width: number;
+  pill: boolean;
+  borderRadius?: number;
+  borderColor: string;
+  borderWidth: number;
 };
+
+const buildBarStyleParams = (args: BarGraphArgs): Partial<BarGeomParams> => ({
+  width: args.width,
+  borderRadius: args.pill ? 'full' : args.borderRadius,
+  borderColor: args.borderColor || undefined,
+  borderWidth: args.borderWidth,
+});
 
 const meta: Meta<BarGraphArgs> = {
   title: 'Chart Types/Bar Graph',
   decorators: [ResizablePlotDecorator],
   args: {
     flipped: false,
+    width: 0.7,
+    pill: false,
+    borderColor: '',
+    borderWidth: 1,
   },
   argTypes: {
     flipped: {
       control: 'boolean',
       description: 'Flip x/y axes to render horizontal bars.',
+    },
+    width: {
+      control: { type: 'range', min: 0.1, max: 1, step: 0.05 },
+      description: 'Bar width as a fraction of the category band.',
+    },
+    pill: {
+      control: 'boolean',
+      description: "Pill-shaped bars (borderRadius: 'full') — overrides the numeric radius.",
+    },
+    borderRadius: {
+      control: { type: 'range', min: 0, max: 24, step: 1 },
+      description: 'Corner rounding in pixels. Unset uses the automatic radius; stacks round only the outer corners.',
+      if: { arg: 'pill', truthy: false },
+    },
+    borderColor: {
+      control: 'color',
+      description: 'Border color. Empty draws no border.',
+    },
+    borderWidth: {
+      control: { type: 'range', min: 1, max: 6, step: 1 },
+      description: 'Border width in pixels. Only takes effect when a border color is set.',
     },
   },
 };
@@ -50,7 +87,7 @@ export const Simple: Story = {
       spec={pipe(
         createSpec(),
         mapping({ x: 'category', y: 'revenue' }),
-        geom.bar(),
+        geom.bar({ params: buildBarStyleParams(args) }),
         scale.x(),
         scale.y(),
         ...flipIfNeeded(args.flipped)
@@ -90,7 +127,7 @@ export const Stacked: Story = {
         createSpec(),
         reshapeToLong,
         mapping({ x: 'quarter', y: 'sales', color: 'region' }),
-        geom.bar({ position: 'stack' }),
+        geom.bar({ position: 'stack', params: buildBarStyleParams(args) }),
         scale.x(),
         scale.y(),
         scale.color.palette(),
@@ -111,7 +148,7 @@ export const Dodged: Story = {
         createSpec(),
         reshapeToLong,
         mapping({ x: 'quarter', y: 'sales', color: 'region' }),
-        geom.bar({ position: 'dodge' }),
+        geom.bar({ position: 'dodge', params: buildBarStyleParams(args) }),
         scale.x(),
         scale.y(),
         scale.color.palette(),
@@ -132,7 +169,7 @@ export const Fill: Story = {
         createSpec(),
         reshapeToLong,
         mapping({ x: 'quarter', y: 'sales', color: 'region' }),
-        geom.bar({ position: 'fill' }),
+        geom.bar({ position: 'fill', params: buildBarStyleParams(args) }),
         scale.x(),
         scale.y(),
         scale.color.palette(),
@@ -169,7 +206,7 @@ export const StackedByProduct: Story = {
       spec={pipe(
         createSpec(),
         mapping({ x: 'month', y: 'revenue', color: 'product' }),
-        geom.bar({ position: 'stack' }),
+        geom.bar({ position: 'stack', params: buildBarStyleParams(args) }),
         scale.x(),
         scale.y(),
         scale.color.palette(),
@@ -209,7 +246,7 @@ export const StackedDivergentMonths: Story = {
       spec={pipe(
         createSpec(),
         mapping({ x: 'month', y: 'revenue', color: 'product' }),
-        geom.bar({ position: 'stack' }),
+        geom.bar({ position: 'stack', params: buildBarStyleParams(args) }),
         scale.x(),
         scale.y(),
         scale.color.palette(),
@@ -236,7 +273,7 @@ export const SingleBar: Story = {
       spec={pipe(
         createSpec(),
         mapping({ x: 'item', y: 'amount' }),
-        geom.bar({ position: 'identity' }),
+        geom.bar({ position: 'identity', params: buildBarStyleParams(args) }),
         scale.x(),
         scale.y(),
         ...flipIfNeeded(args.flipped)
@@ -280,7 +317,7 @@ export const CountStat: Story = {
       spec={pipe(
         createSpec(),
         mapping({ x: 'category' }),
-        geom.bar({ stat: 'count' }),
+        geom.bar({ stat: 'count', params: buildBarStyleParams(args) }),
         scale.x(),
         scale.y(),
         config({ axes: { y: { label: 'Count' } } }),
@@ -312,7 +349,7 @@ export const NegativeValues: Story = {
       spec={pipe(
         createSpec(),
         mapping({ x: 'month', y: 'pnl' }),
-        geom.bar({ position: 'identity' }),
+        geom.bar({ position: 'identity', params: buildBarStyleParams(args) }),
         scale.x(),
         scale.y(),
         ...flipIfNeeded(args.flipped)

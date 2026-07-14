@@ -1,11 +1,37 @@
 import type { Meta, StoryObj } from '@storybook/react';
 
 import { GraphRenderer } from '@graphysdk/react-renderer';
-import type { Data } from '@graphysdk/viz-engine';
+import type { BarGeomParams, Data } from '@graphysdk/viz-engine';
 import { config, coord, createSpec, geom, pipe, scale } from '@graphysdk/viz-engine';
 
 import { ResizablePlotDecorator } from '../../addons/ResizablePlotDecorator';
 import { VizStoryGraphProvider } from '../../components/VizStoryGraphProvider';
+
+interface SliceBorderArgs {
+  borderColor: string;
+  borderWidth: number;
+}
+
+const sliceBorderDefaults: SliceBorderArgs = {
+  borderColor: '',
+  borderWidth: 1,
+};
+
+const sliceBorderArgTypes = {
+  borderColor: {
+    control: 'color',
+    description: 'Slice border color — also separates adjacent slices. Empty draws no border.',
+  },
+  borderWidth: {
+    control: { type: 'range', min: 1, max: 6, step: 1 },
+    description: 'Border width in pixels. Only takes effect when a border color is set.',
+  },
+} as const;
+
+const buildSliceBorderParams = (args: SliceBorderArgs): Partial<BarGeomParams> => ({
+  borderColor: args.borderColor || undefined,
+  borderWidth: args.borderWidth,
+});
 
 const meta: Meta = {
   title: 'Chart Types/Pie Graph',
@@ -13,7 +39,7 @@ const meta: Meta = {
 };
 
 export default meta;
-type Story = StoryObj<typeof meta>;
+type Story = StoryObj<SliceBorderArgs>;
 
 // ─── Budget breakdown ──────────────────────────────────────────────────────
 const budgetData: Data = {
@@ -29,12 +55,14 @@ const budgetData: Data = {
 };
 
 export const BudgetBreakdown: Story = {
-  render: () => (
+  args: sliceBorderDefaults,
+  argTypes: sliceBorderArgTypes,
+  render: (args) => (
     <VizStoryGraphProvider
       data={budgetData}
       spec={pipe(
         createSpec({ x: '', y: 'spend', color: 'department' }),
-        geom.bar({ position: 'fill' }),
+        geom.bar({ position: 'fill', params: buildSliceBorderParams(args) }),
         coord.polar({ theta: 'y' }),
         scale.x(),
         scale.y(),
@@ -67,12 +95,14 @@ const marketShareData: Data = {
 };
 
 export const MarketShare: Story = {
-  render: () => (
+  args: sliceBorderDefaults,
+  argTypes: sliceBorderArgTypes,
+  render: (args) => (
     <VizStoryGraphProvider
       data={marketShareData}
       spec={pipe(
         createSpec({ x: '', y: 'share', color: 'browser' }),
-        geom.bar({ position: 'fill' }),
+        geom.bar({ position: 'fill', params: buildSliceBorderParams(args) }),
         coord.polar({ theta: 'y', innerRadius: 0.55 }),
         scale.x(),
         scale.y(),
