@@ -1,8 +1,8 @@
 import type { Meta, StoryObj } from '@storybook/react';
 
 import { GraphRenderer } from '@graphysdk/react-renderer';
-import type { BarGeomParams, Data } from '@graphysdk/viz-engine';
-import { config, coord, createSpec, geom, pipe, scale } from '@graphysdk/viz-engine';
+import type { Data, StylesheetInput } from '@graphysdk/viz-engine';
+import { config, coord, createSpec, geom, pipe, scale, style, styles } from '@graphysdk/viz-engine';
 
 import { ResizablePlotDecorator } from '../../addons/ResizablePlotDecorator';
 import { VizStoryGraphProvider } from '../../components/VizStoryGraphProvider';
@@ -10,11 +10,13 @@ import { VizStoryGraphProvider } from '../../components/VizStoryGraphProvider';
 interface SliceBorderArgs {
   borderColor: string;
   borderWidth: number;
+  showBrandMark: boolean;
 }
 
 const sliceBorderDefaults: SliceBorderArgs = {
   borderColor: '',
   borderWidth: 1,
+  showBrandMark: false,
 };
 
 const sliceBorderArgTypes = {
@@ -26,12 +28,19 @@ const sliceBorderArgTypes = {
     control: { type: 'range', min: 1, max: 6, step: 1 },
     description: 'Border width in pixels. Only takes effect when a border color is set.',
   },
+  showBrandMark: {
+    control: { type: 'boolean' },
+    description:
+      'Toggle the Made with Graphy provenance badge. Off by default — enable it on a radial chart to see a bottom-edge slice label yield so it clears the reserved footer band.',
+  },
 } as const;
 
-const buildSliceBorderParams = (args: SliceBorderArgs): Partial<BarGeomParams> => ({
-  borderColor: args.borderColor || undefined,
-  borderWidth: args.borderWidth,
-});
+const buildSliceBorderStyles = (args: SliceBorderArgs): StylesheetInput =>
+  styles({
+    defaults: [
+      style.geom.bar(args.borderColor ? { borderColor: args.borderColor, borderWidth: args.borderWidth } : {}),
+    ],
+  });
 
 const meta: Meta = {
   title: 'Chart Types/Pie Graph',
@@ -62,7 +71,8 @@ export const BudgetBreakdown: Story = {
       data={budgetData}
       spec={pipe(
         createSpec({ x: '', y: 'spend', color: 'department' }),
-        geom.bar({ position: 'fill', params: buildSliceBorderParams(args) }),
+        geom.bar({ position: 'fill' }),
+        buildSliceBorderStyles(args),
         coord.polar({ theta: 'y' }),
         scale.x(),
         scale.y(),
@@ -71,10 +81,12 @@ export const BudgetBreakdown: Story = {
           legend: {
             position: 'right',
           },
+          content: { isBrandMarkVisible: args.showBrandMark },
         })
       )}
       config={{
         type: 'pie',
+        content: { isBrandMarkHidden: !args.showBrandMark },
       }}
     >
       <GraphRenderer />
@@ -102,14 +114,17 @@ export const MarketShare: Story = {
       data={marketShareData}
       spec={pipe(
         createSpec({ x: '', y: 'share', color: 'browser' }),
-        geom.bar({ position: 'fill', params: buildSliceBorderParams(args) }),
+        geom.bar({ position: 'fill' }),
+        buildSliceBorderStyles(args),
         coord.polar({ theta: 'y', innerRadius: 0.55 }),
         scale.x(),
         scale.y(),
-        scale.color.palette()
+        scale.color.palette(),
+        config({ content: { isBrandMarkVisible: args.showBrandMark } })
       )}
       config={{
         type: 'donut',
+        content: { isBrandMarkHidden: !args.showBrandMark },
       }}
     >
       <GraphRenderer />

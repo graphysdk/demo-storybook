@@ -1,4 +1,3 @@
-/* eslint-disable id-length */
 import type { Meta, StoryObj } from '@storybook/react';
 
 import { GraphRenderer } from '@graphysdk/react-renderer';

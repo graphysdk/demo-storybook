@@ -1,28 +1,49 @@
 import type { Meta, StoryObj } from '@storybook/react';
 
 import { GraphRenderer } from '@graphysdk/react-renderer';
-import type { BarGeomParams, Data } from '@graphysdk/viz-engine';
-import { config, coord, createSpec, geom, pipe, scale } from '@graphysdk/viz-engine';
+import type { BorderRadiusToken, Data, StylesheetInput } from '@graphysdk/viz-engine';
+import {
+  BORDER_RADIUS_TOKENS,
+  config,
+  coord,
+  createSpec,
+  geom,
+  pipe,
+  scale,
+  style,
+  styles,
+} from '@graphysdk/viz-engine';
 
 import { ResizablePlotDecorator } from '../../addons/ResizablePlotDecorator';
 import { VizStoryGraphProvider } from '../../components/VizStoryGraphProvider';
 
-interface BarStyleArgs {
+interface BarGraphArgs {
   width: number;
+  borderRadius: BorderRadiusToken;
   borderColor: string;
   borderWidth: number;
 }
 
-const barStyleDefaults: BarStyleArgs = {
-  width: 0.7,
-  borderColor: '',
-  borderWidth: 1,
-};
+const buildBarStyles = (args: BarGraphArgs): StylesheetInput =>
+  styles({
+    defaults: [
+      style.geom.bar({
+        borderRadius: args.borderRadius,
+        ...(args.borderColor ? { borderColor: args.borderColor, borderWidth: args.borderWidth } : {}),
+      }),
+    ],
+  });
 
 const barStyleArgTypes = {
   width: {
     control: { type: 'range', min: 0.1, max: 1, step: 0.05 },
     description: 'Bar width as a fraction of the category band — angular for rose petals, radial for tracks.',
+  },
+  borderRadius: {
+    control: { type: 'select' },
+    options: BORDER_RADIUS_TOKENS,
+    description:
+      "Corner rounding token — 'none' through 'xl', or 'full' for pill caps. Rounds the whole stack's outer silhouette; scales with the chart.",
   },
   borderColor: {
     control: 'color',
@@ -34,19 +55,13 @@ const barStyleArgTypes = {
   },
 } as const;
 
-const buildBarStyleParams = (args: BarStyleArgs): Partial<BarGeomParams> => ({
-  width: args.width,
-  borderColor: args.borderColor || undefined,
-  borderWidth: args.borderWidth,
-});
-
 const meta: Meta = {
   title: 'Chart Types/Polar Bar Graph',
   decorators: [ResizablePlotDecorator],
 };
 
 export default meta;
-type Story = StoryObj<BarStyleArgs>;
+type Story = StoryObj<BarGraphArgs>;
 
 // Signups per weekday, split across three acquisition channels — long format, one row per
 // (day, channel). `color: 'channel'` splits each category into one series per channel.
@@ -81,14 +96,20 @@ const signupsData: Data = {
 // Category spokes the angle (one wedge band per day), value grows the radius outward. Dodge splits
 // each day's band into one sub-wedge per channel — the "petals".
 export const Rose: Story = {
-  args: barStyleDefaults,
+  args: {
+    width: 0.7,
+    borderRadius: 'sm',
+    borderColor: '',
+    borderWidth: 1,
+  },
   argTypes: barStyleArgTypes,
   render: (args) => (
     <VizStoryGraphProvider
       data={signupsData}
       spec={pipe(
         createSpec({ x: 'day', y: 'signups', color: 'channel' }),
-        geom.bar({ position: 'dodge', params: buildBarStyleParams(args) }),
+        geom.bar({ position: 'dodge', params: { width: args.width } }),
+        buildBarStyles(args),
         coord.polar({ theta: 'x' }),
         scale.x.discrete(),
         scale.y({ zero: true }),
@@ -110,14 +131,20 @@ export const Rose: Story = {
 // ─── Stacked rose ──────────────────────────────────────────────────────────
 // Same wedge-per-day layout, but the channels stack outward along the radius instead of dodging.
 export const StackedRose: Story = {
-  args: barStyleDefaults,
+  args: {
+    width: 0.7,
+    borderRadius: 'sm',
+    borderColor: '',
+    borderWidth: 1,
+  },
   argTypes: barStyleArgTypes,
   render: (args) => (
     <VizStoryGraphProvider
       data={signupsData}
       spec={pipe(
         createSpec({ x: 'day', y: 'signups', color: 'channel' }),
-        geom.bar({ position: 'stack', params: buildBarStyleParams(args) }),
+        geom.bar({ position: 'stack', params: { width: args.width } }),
+        buildBarStyles(args),
         coord.polar({ theta: 'x' }),
         scale.x.discrete(),
         scale.y({ zero: true }),
@@ -140,14 +167,20 @@ export const StackedRose: Story = {
 // Category picks the radius (one concentric track per day), value sweeps the angle. Channels stack
 // along the arc so each track reads as consecutive coloured segments.
 export const RadialBar: Story = {
-  args: barStyleDefaults,
+  args: {
+    width: 0.7,
+    borderRadius: 'sm',
+    borderColor: '',
+    borderWidth: 1,
+  },
   argTypes: barStyleArgTypes,
   render: (args) => (
     <VizStoryGraphProvider
       data={signupsData}
       spec={pipe(
         createSpec({ x: 'day', y: 'signups', color: 'channel' }),
-        geom.bar({ position: 'stack', params: buildBarStyleParams(args) }),
+        geom.bar({ position: 'stack', params: { width: args.width } }),
+        buildBarStyles(args),
         coord.polar({ theta: 'y', innerRadius: 0.15 }),
         scale.x.discrete(),
         scale.y({ zero: true }),

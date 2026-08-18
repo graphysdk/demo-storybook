@@ -1,15 +1,9 @@
 import type { Meta, StoryObj } from '@storybook/react';
 
 import { GraphRenderer } from '@graphysdk/react-renderer';
-import type {
-  AnnotationItem,
-  Data,
-  GraphConfig,
-  SpecInput,
-  StickerAnnotationInput,
-  StickerId,
-} from '@graphysdk/viz-engine';
+import type { AnnotationItem, Data, SpecInput, StickerAnnotationInput, StickerId } from '@graphysdk/viz-engine';
 import { annotation, config, coord, createSpec, geom, mapping, pipe, scale } from '@graphysdk/viz-engine';
+import type { GraphConfig } from '@graphysdk/viz-engine/graph-config';
 
 import { ResizablePlotDecorator } from '../../../addons/ResizablePlotDecorator';
 import { VizStoryGraphProvider } from '../../../components/VizStoryGraphProvider';

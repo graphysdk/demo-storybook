@@ -57,7 +57,6 @@ export const Simple: Story = {
       config={{
         type: 'areaStacked',
       }}
-      formattingLocale="ar"
     >
       <GraphRenderer />
     </VizStoryGraphProvider>

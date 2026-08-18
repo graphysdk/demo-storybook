@@ -1,8 +1,10 @@
 import type { Meta, StoryObj } from '@storybook/react';
+import { useState } from 'react';
 
+import type { ThemeOverrides } from '@graphysdk/react-renderer';
 import { GraphRenderer } from '@graphysdk/react-renderer';
-import type { Data, PanelOverflowStrategy } from '@graphysdk/viz-engine';
-import { config, coord, createSpec, geom, mapping, pipe, scale, transform } from '@graphysdk/viz-engine';
+import type { Data, PanelOverflowStrategy, StyleRule } from '@graphysdk/viz-engine';
+import { config, coord, createSpec, geom, mapping, pipe, scale, style, styles, transform } from '@graphysdk/viz-engine';
 
 import { ResizablePlotDecorator } from '../../addons/ResizablePlotDecorator';
 import { VizStoryGraphProvider } from '../../components/VizStoryGraphProvider';
@@ -44,6 +46,94 @@ const overflowStrategyArgs = {
   overflowStrategyY: 'inside' as PanelOverflowStrategy,
 };
 
+type Placement = 'auto' | 'inside' | 'outside';
+type Anchor = 'start' | 'center' | 'end';
+type Justify = Anchor | 'panel-start' | 'panel-end';
+
+interface PlacementArgs {
+  position: Placement;
+  justify: Justify;
+  align: Anchor;
+  offset: number;
+}
+
+const placementArgTypes = {
+  position: {
+    control: { type: 'inline-radio' as const },
+    options: ['auto', 'inside', 'outside'] satisfies Placement[],
+    description:
+      'Where labels sit relative to the geom. Auto keeps the engine heuristics (fit inside, flip outside, drop); explicit values render exactly as asked.',
+  },
+  justify: {
+    control: { type: 'inline-radio' as const },
+    options: ['start', 'center', 'end', 'panel-start', 'panel-end'] satisfies Justify[],
+    description:
+      "Anchor along the geom's value axis — 'end' is the value tip on vertical, flipped, and negative bars alike (radial on pie). The panel anchors pin the label to the panel's edge instead, regardless of the geom's length. Ignored under auto.",
+  },
+  align: {
+    control: { type: 'inline-radio' as const },
+    options: ['start', 'center', 'end'] satisfies Anchor[],
+    description:
+      "Anchor across the geom's secondary axis — bandwidth for bars, angular for pie wedges. Always stays within the geom (point/line labels sit beside it). Ignored under auto.",
+  },
+  offset: {
+    control: { type: 'number' as const },
+    description:
+      "Gap in pixels between the geom's edge and the label box along the value axis (align edges are unaffected).",
+  },
+};
+
+const pickPlacement = (args: PlacementArgs): PlacementArgs => ({
+  position: args.position,
+  justify: args.justify,
+  align: args.align,
+  offset: args.offset,
+});
+
+type CategoryPlacement = Exclude<Placement, 'auto'>;
+
+interface CategoryPlacementArgs {
+  showCategoryLabels: boolean;
+  categoryPosition: CategoryPlacement;
+  categoryJustify: Justify;
+  categoryAlign: Anchor;
+  categoryOffset: number;
+}
+
+const categoryArgTypes = {
+  showCategoryLabels: {
+    control: 'boolean' as const,
+    description: 'Adds a second label per bar carrying the category text, shown even without value labels.',
+  },
+  categoryPosition: {
+    control: { type: 'inline-radio' as const },
+    options: ['inside', 'outside'] satisfies CategoryPlacement[],
+    description: 'Where the category label sits relative to its bar (no auto — it renders exactly as asked).',
+  },
+  categoryJustify: {
+    control: { type: 'inline-radio' as const },
+    options: ['start', 'center', 'end', 'panel-start', 'panel-end'] satisfies Justify[],
+    description: "Category label's anchor along the bar's value axis; panel anchors pin it to the chart edge.",
+  },
+  categoryAlign: {
+    control: { type: 'inline-radio' as const },
+    options: ['start', 'center', 'end'] satisfies Anchor[],
+    description: "Category label's anchor across the bar's bandwidth.",
+  },
+  categoryOffset: {
+    control: { type: 'number' as const },
+    description: 'Gap in pixels between the anchored edge and the category label box.',
+  },
+};
+
+const pickCategoryPlacement = (args: CategoryPlacementArgs): CategoryPlacementArgs => ({
+  showCategoryLabels: args.showCategoryLabels,
+  categoryPosition: args.categoryPosition,
+  categoryJustify: args.categoryJustify,
+  categoryAlign: args.categoryAlign,
+  categoryOffset: args.categoryOffset,
+});
+
 // ─── Single bar ────────────────────────────────────────────────────────────────
 
 const productData: Data = {
@@ -58,7 +148,7 @@ const productData: Data = {
   ],
 };
 
-interface SingleBarArgs {
+interface SingleBarArgs extends PlacementArgs, CategoryPlacementArgs {
   showDataLabels: boolean;
   flipped: boolean;
 }
@@ -67,15 +157,35 @@ export const SingleBar: StoryObj<SingleBarArgs> = {
   argTypes: {
     showDataLabels: { control: 'boolean', description: 'Toggles per-observation labels on the bars.' },
     flipped: { control: 'boolean', description: 'Flip x/y axes (horizontal bars).' },
+    ...placementArgTypes,
+    ...categoryArgTypes,
   },
-  args: { showDataLabels: true, flipped: false },
+  args: {
+    showDataLabels: true,
+    flipped: false,
+    position: 'auto',
+    justify: 'end',
+    align: 'center',
+    offset: 4,
+    showCategoryLabels: false,
+    categoryPosition: 'inside',
+    categoryJustify: 'start',
+    categoryAlign: 'center',
+    categoryOffset: 4,
+  },
   render: (args) => (
     <VizStoryGraphProvider
       data={productData}
       spec={pipe(
         createSpec(),
         mapping({ x: 'product', y: 'revenue' }),
-        geom.bar({ dataLabels: { showDataLabels: args.showDataLabels } }),
+        geom.bar({
+          dataLabels: {
+            showDataLabels: args.showDataLabels,
+            ...pickPlacement(args),
+            ...pickCategoryPlacement(args),
+          },
+        }),
         scale.x(),
         scale.y(),
         ...(args.flipped ? [coord.flip()] : []),
@@ -85,6 +195,258 @@ export const SingleBar: StoryObj<SingleBarArgs> = {
         type: 'column',
         dataLabels: { showDataLabels: args.showDataLabels },
       }}
+    >
+      <GraphRenderer />
+    </VizStoryGraphProvider>
+  ),
+};
+
+// ─── Style gallery (placement + typography presets) ────────────────────────────
+
+interface LabelStyle {
+  name: string;
+  dataLabels: {
+    position: CategoryPlacement;
+    justify: Justify;
+    align: Anchor;
+    offset: number;
+    showCategoryLabels?: boolean;
+    categoryPosition?: CategoryPlacement;
+    categoryJustify?: Justify;
+    categoryAlign?: Anchor;
+    categoryOffset?: number;
+  };
+  /** The preset's `style.dataLabel` entries — its label typography and colour. */
+  labelStyles: StyleRule[];
+  themeOverrides: ThemeOverrides;
+  /** Fill(s) for the bars — one colour paints every bar the same, several cycle per bar. */
+  barColors: string[];
+  background: string;
+  theme: 'light' | 'dark';
+  flipped?: boolean;
+}
+
+const DEFAULT_LABEL_STYLE: LabelStyle = {
+  name: 'Highlight pills',
+  dataLabels: { position: 'outside', justify: 'end', align: 'center', offset: 8 },
+  labelStyles: [
+    style.dataLabel({ fontSize: 11, fontWeight: 800, textColor: '#1a1b2e' }),
+    style.dataLabel.observation.outside({ background: '#ffd43b' }),
+  ],
+  themeOverrides: {},
+  barColors: ['#1a1b2e'],
+  background: '#f4f1ea',
+  theme: 'light',
+};
+
+const LABEL_STYLES: LabelStyle[] = [
+  DEFAULT_LABEL_STYLE,
+  {
+    name: 'Poster',
+    dataLabels: { position: 'inside', justify: 'end', align: 'center', offset: 10 },
+    labelStyles: [
+      style.dataLabel({ fontFamily: `'Arial Narrow', Impact, sans-serif`, fontSize: 20, fontWeight: 900 }),
+      style.dataLabel.observation.inside({ textColor: '#ffffff' }),
+    ],
+    themeOverrides: {},
+    barColors: ['#ff5470', '#ff8e3c', '#3da9fc', '#7f5af0', '#2cb67d', '#ef4565'],
+    background: '#fffffe',
+    theme: 'light',
+  },
+  {
+    name: 'Terminal',
+    dataLabels: { position: 'inside', justify: 'start', align: 'center', offset: 10 },
+    labelStyles: [
+      style.dataLabel({ fontFamily: `'SF Mono', Menlo, monospace`, fontSize: 11, fontWeight: 700 }),
+      style.dataLabel.observation.inside({ textColor: '#39ff14' }),
+    ],
+    themeOverrides: {},
+    barColors: ['#0f2e18'],
+    background: '#050a05',
+    theme: 'dark',
+    flipped: true,
+  },
+  {
+    name: 'Ledger',
+    dataLabels: {
+      position: 'inside',
+      justify: 'panel-end',
+      align: 'center',
+      offset: 14,
+      showCategoryLabels: true,
+      categoryPosition: 'inside',
+      categoryJustify: 'start',
+      categoryAlign: 'center',
+      categoryOffset: 14,
+    },
+    // The bare entry's gold reaches inside labels too, over the built-in inside white.
+    labelStyles: [
+      style.dataLabel({ fontSize: 12, fontWeight: 800, textColor: '#f5c518' }),
+      style.dataLabel.category({ fontSize: 11, fontWeight: 500 }),
+    ],
+    themeOverrides: {},
+    barColors: ['#1e2a4a'],
+    background: '#0d1526',
+    theme: 'dark',
+    flipped: true,
+  },
+  {
+    name: 'Editorial',
+    dataLabels: { position: 'outside', justify: 'end', align: 'center', offset: 14 },
+    labelStyles: [
+      style.dataLabel({ fontFamily: 'Georgia, serif', fontSize: 14, fontWeight: 700, textColor: '#9f1239' }),
+      style.dataLabel.observation.outside({ background: 'transparent' }),
+    ],
+    themeOverrides: {},
+    barColors: ['#e8b4b8'],
+    background: '#fdf6ec',
+    theme: 'light',
+  },
+];
+
+const StyleGalleryPreview = () => {
+  const [selectedStyle, setSelectedStyle] = useState<LabelStyle>(DEFAULT_LABEL_STYLE);
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 12, height: '100%' }}>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        {LABEL_STYLES.map((labelStyle) => {
+          const isSelected = labelStyle.name === selectedStyle.name;
+          return (
+            <button
+              key={labelStyle.name}
+              type="button"
+              onClick={() => setSelectedStyle(labelStyle)}
+              style={{
+                padding: '6px 12px',
+                borderRadius: 6,
+                border: isSelected ? '1px solid #4c6ef5' : '1px solid #ccc',
+                background: isSelected ? '#edf2ff' : '#fff',
+                fontWeight: isSelected ? 600 : 400,
+                cursor: 'pointer',
+              }}
+            >
+              {labelStyle.name}
+            </button>
+          );
+        })}
+      </div>
+      <div style={{ flex: 1, minHeight: 0 }}>
+        <VizStoryGraphProvider
+          key={selectedStyle.name}
+          data={productData}
+          spec={pipe(
+            createSpec(),
+            mapping({ x: 'product', y: 'revenue', color: 'product' }),
+            geom.bar({ dataLabels: { showDataLabels: true, ...selectedStyle.dataLabels } }),
+            scale.x(),
+            scale.y(),
+            scale.color.discrete({ range: selectedStyle.barColors }),
+            ...(selectedStyle.flipped ? [coord.flip()] : []),
+            config({
+              legend: { position: 'none' },
+              axes: { y: { label: 'revenue' } },
+            }),
+            styles({ defaults: [style.graph({ background: selectedStyle.background }), ...selectedStyle.labelStyles] })
+          )}
+          colorScheme={selectedStyle.theme}
+          themeOverrides={selectedStyle.themeOverrides}
+        >
+          <GraphRenderer />
+        </VizStoryGraphProvider>
+      </div>
+    </div>
+  );
+};
+
+/**
+ * Five preset label looks, each combining placement (position / justify / align / offset) with
+ * label typography and colour via `style.dataLabel` entries, plus matching bar and background
+ * colours. Switch presets with the buttons above the preview.
+ */
+export const StyleGallery: StoryObj = {
+  render: () => <StyleGalleryPreview />,
+};
+
+// ─── Bar list (categories inside, values at the panel edge) ────────────────────
+
+const routeData: Data = {
+  columns: [{ key: 'route' }, { key: 'requests' }],
+  rows: [
+    { route: '/login', requests: 207000 },
+    { route: '/', requests: 149000 },
+    { route: '/oauth/git', requests: 125000 },
+    { route: '/new/import', requests: 78000 },
+    { route: '/login/v0', requests: 64000 },
+    { route: '/signup/v0', requests: 51000 },
+    { route: '/signup', requests: 48000 },
+  ],
+};
+
+interface BarListArgs {
+  dark: boolean;
+}
+
+/**
+ * The Vercel-style bar list, recreated as closely as the spec + theme surface allows: flipped
+ * grey bars on a near-black canvas, the route inside each bar at its base, and the bold value
+ * pinned to the panel's right edge via `justify: 'panel-end'` — flush at one x regardless of bar
+ * length. Chrome is stripped (axes, grid, panel border, legend); `domainMax` leaves headroom so
+ * the longest bar stops short of the value column; the outside label background is disabled and
+ * the label type restyled through `style.dataLabel` entries.
+ */
+export const BarList: StoryObj<BarListArgs> = {
+  argTypes: {
+    dark: { control: 'boolean', description: 'Render on the dark theme, as in the reference design.' },
+  },
+  args: { dark: true },
+  render: (args) => (
+    <VizStoryGraphProvider
+      data={routeData}
+      spec={pipe(
+        createSpec(),
+        mapping({ x: 'route', y: 'requests', color: 'route' }),
+        geom.bar({
+          dataLabels: {
+            showDataLabels: true,
+            showCategoryLabels: true,
+            position: 'inside',
+            justify: 'panel-end',
+            offset: 16,
+            categoryPosition: 'inside',
+            categoryJustify: 'start',
+            categoryOffset: 16,
+          },
+        }),
+        // padding 0.35 reproduces the reference's bar-to-gap ratio (~68px bars, ~36px gaps).
+        scale.x(),
+        // The reference's longest bar spans the full width with its value over it — end the
+        // domain exactly at the data maximum instead of nice-ing past it.
+        scale.y.continuous({ nice: false }),
+        // A single-colour range paints every bar the same neutral grey without a legend.
+        scale.color.discrete({ range: [args.dark ? '#2a2a2a' : '#e8e8e8'] }),
+        coord.flip(),
+        config({
+          legend: { position: 'none' },
+          axes: {
+            x: { isVisible: false, grid: { isVisible: false } },
+            y: { isVisible: false, grid: { isVisible: false } },
+          },
+        }),
+        styles({
+          defaults: [
+            style.panelBorder({ strokeWidth: 0 }),
+            style.graph({ background: args.dark ? '#0b0b0b' : '#fafafa' }),
+            style.dataLabel({ fontSize: 14, fontWeight: 600, textColor: args.dark ? '#ffffff' : '#111111' }),
+            style.dataLabel.category({ fontWeight: 400 }),
+            style.dataLabel.observation.inside({ textColor: args.dark ? '#d9d9d9' : '#333333' }),
+            style.dataLabel.category.inside({ textColor: args.dark ? '#d9d9d9' : '#333333' }),
+            style.dataLabel.observation.outside({ background: 'transparent' }),
+            style.dataLabel.category.outside({ background: 'transparent' }),
+          ],
+        })
+      )}
+      colorScheme={args.dark ? 'dark' : 'light'}
     >
       <GraphRenderer />
     </VizStoryGraphProvider>
@@ -112,7 +474,7 @@ const regionReshape = transform.reshape({
   valueName: 'sales',
 });
 
-interface StackedBarArgs {
+interface StackedBarArgs extends PlacementArgs {
   showDataLabels: boolean;
   showStackTotals: boolean;
   format: Format;
@@ -126,8 +488,17 @@ export const StackedBar: StoryObj<StackedBarArgs> = {
     showStackTotals: { control: 'boolean', description: 'One label per stack at the top of the topmost segment.' },
     format: formatControl,
     ...overflowStrategyArgTypes,
+    ...placementArgTypes,
   },
-  args: { showDataLabels: true, showStackTotals: true, format: 'absolute', ...overflowStrategyArgs },
+  args: {
+    showDataLabels: true,
+    showStackTotals: true,
+    format: 'absolute',
+    ...overflowStrategyArgs,
+    position: 'auto',
+    justify: 'center',
+    align: 'center',
+  },
   render: (args) => (
     <VizStoryGraphProvider
       data={regionData}
@@ -139,6 +510,7 @@ export const StackedBar: StoryObj<StackedBarArgs> = {
             showDataLabels: args.showDataLabels,
             showStackTotals: args.showStackTotals,
             format: args.format,
+            ...pickPlacement(args),
           },
         }),
         scale.x(),
@@ -231,6 +603,49 @@ export const DivergingStack: StoryObj<DivergingArgs> = {
           showStackTotals: args.showStackTotals,
         },
         axes: { y: { label: 'amount' } },
+      }}
+    >
+      <GraphRenderer />
+    </VizStoryGraphProvider>
+  ),
+};
+
+// ─── Grouped negative bars (sign-invariant justify) ────────────────────────────
+
+interface NegativeBarArgs extends PlacementArgs {
+  showDataLabels: boolean;
+  flipped: boolean;
+}
+
+/**
+ * Dogfoods the geometry-relative anchor: with `justify: 'end'` every label tracks the value tip —
+ * the top of positive bars and the bottom of negative bars — under both orientations.
+ */
+export const GroupedNegativeBars: StoryObj<NegativeBarArgs> = {
+  argTypes: {
+    showDataLabels: { control: 'boolean' },
+    flipped: { control: 'boolean', description: 'Flip x/y axes (horizontal bars).' },
+    ...placementArgTypes,
+  },
+  args: { showDataLabels: true, flipped: false, position: 'outside', justify: 'end', align: 'center' },
+  render: (args) => (
+    <VizStoryGraphProvider
+      data={profitData}
+      spec={pipe(
+        createSpec(profitReshape, mapping({ x: 'month', y: 'amount', color: 'kind' })),
+        geom.bar({
+          position: 'dodge',
+          dataLabels: { showDataLabels: args.showDataLabels, ...pickPlacement(args) },
+        }),
+        scale.x(),
+        scale.y(),
+        scale.color.palette(),
+        ...(args.flipped ? [coord.flip()] : []),
+        config({ axes: { y: { label: 'amount' } } })
+      )}
+      config={{
+        type: 'column',
+        dataLabels: { showDataLabels: args.showDataLabels },
       }}
     >
       <GraphRenderer />
@@ -331,7 +746,7 @@ const departmentSpendData: Data = {
   ],
 };
 
-interface PieArgs {
+interface PieArgs extends PlacementArgs {
   showDataLabels: boolean;
   format: Format;
   showCategoryLabels: boolean;
@@ -345,8 +760,16 @@ export const Pie: StoryObj<PieArgs> = {
       control: 'boolean',
       description: 'Prepends the X-mapped category to each wedge label (e.g. "Engineering · 42.0%").',
     },
+    ...placementArgTypes,
   },
-  args: { showDataLabels: true, format: 'percentage', showCategoryLabels: false },
+  args: {
+    showDataLabels: true,
+    format: 'percentage',
+    showCategoryLabels: false,
+    position: 'auto',
+    justify: 'end',
+    align: 'center',
+  },
   render: (args) => (
     <VizStoryGraphProvider
       data={departmentSpendData}
@@ -358,6 +781,7 @@ export const Pie: StoryObj<PieArgs> = {
             showDataLabels: args.showDataLabels,
             format: args.format,
             showCategoryLabels: args.showCategoryLabels,
+            ...pickPlacement(args),
           },
         }),
         coord.polar({ theta: 'y' }),
@@ -507,19 +931,27 @@ const trendReshape = transform.reshape({
   valueName: 'sales',
 });
 
-export const Line: StoryObj<{
+interface LineArgs extends PlacementArgs {
   showDataLabels: boolean;
   overflowStrategyX: PanelOverflowStrategy;
   overflowStrategyY: PanelOverflowStrategy;
-}> = {
-  argTypes: { showDataLabels: { control: 'boolean' }, ...overflowStrategyArgTypes },
-  args: { showDataLabels: true, ...overflowStrategyArgs },
+}
+
+export const Line: StoryObj<LineArgs> = {
+  argTypes: { showDataLabels: { control: 'boolean' }, ...overflowStrategyArgTypes, ...placementArgTypes },
+  args: {
+    showDataLabels: true,
+    ...overflowStrategyArgs,
+    position: 'auto',
+    justify: 'end',
+    align: 'center',
+  },
   render: (args) => (
     <VizStoryGraphProvider
       data={trendData}
       spec={pipe(
         createSpec(trendReshape, mapping({ x: 'month', y: 'sales', color: 'region' })),
-        geom.line({ dataLabels: { showDataLabels: args.showDataLabels } }),
+        geom.line({ dataLabels: { showDataLabels: args.showDataLabels, ...pickPlacement(args) } }),
         scale.x(),
         scale.y(),
         scale.color.palette(),
@@ -554,7 +986,7 @@ const bubbleData: Data = {
   ],
 };
 
-interface BubbleArgs {
+interface BubbleArgs extends PlacementArgs {
   showDataLabels: boolean;
   labelBy: 'default' | 'population' | 'continent' | 'lifeExpectancy' | 'star';
   overflowStrategyX: PanelOverflowStrategy;
@@ -589,8 +1021,16 @@ export const ScatterBubble: StoryObj<BubbleArgs> = {
         'What each bubble is labelled with. `default` lets the point geom pick: it uses the first categorical mapped variable (continent here), then size, then y.',
     },
     ...overflowStrategyArgTypes,
+    ...placementArgTypes,
   },
-  args: { showDataLabels: true, labelBy: 'default', ...overflowStrategyArgs },
+  args: {
+    showDataLabels: true,
+    labelBy: 'default',
+    ...overflowStrategyArgs,
+    position: 'auto',
+    justify: 'end',
+    align: 'center',
+  },
   render: (args) => {
     const labelAes = bubbleLabelAes(args.labelBy);
     return (
@@ -600,7 +1040,7 @@ export const ScatterBubble: StoryObj<BubbleArgs> = {
           createSpec({ x: 'gdp', y: 'lifeExpectancy', size: 'population', color: 'continent' }),
           geom.point({
             aes: labelAes === undefined ? undefined : { label: labelAes },
-            dataLabels: { showDataLabels: args.showDataLabels },
+            dataLabels: { showDataLabels: args.showDataLabels, ...pickPlacement(args) },
           }),
           scale.x(),
           scale.y(),
@@ -617,19 +1057,30 @@ export const ScatterBubble: StoryObj<BubbleArgs> = {
 
 // ─── Stacked area ──────────────────────────────────────────────────────────────
 
-export const Area: StoryObj<{
+interface AreaArgs extends PlacementArgs {
   showDataLabels: boolean;
   overflowStrategyX: PanelOverflowStrategy;
   overflowStrategyY: PanelOverflowStrategy;
-}> = {
-  argTypes: { showDataLabels: { control: 'boolean' }, ...overflowStrategyArgTypes },
-  args: { showDataLabels: true, ...overflowStrategyArgs },
+}
+
+export const Area: StoryObj<AreaArgs> = {
+  argTypes: { showDataLabels: { control: 'boolean' }, ...overflowStrategyArgTypes, ...placementArgTypes },
+  args: {
+    showDataLabels: true,
+    ...overflowStrategyArgs,
+    position: 'auto',
+    justify: 'end',
+    align: 'center',
+  },
   render: (args) => (
     <VizStoryGraphProvider
       data={trendData}
       spec={pipe(
         createSpec(trendReshape, mapping({ x: 'month', y: 'sales', color: 'region' })),
-        geom.area({ position: 'stack', dataLabels: { showDataLabels: args.showDataLabels } }),
+        geom.area({
+          position: 'stack',
+          dataLabels: { showDataLabels: args.showDataLabels, ...pickPlacement(args) },
+        }),
         scale.x(),
         scale.y(),
         scale.color.palette(),

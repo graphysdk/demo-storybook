@@ -49,7 +49,7 @@ export const Dark: Story = {
   parameters: {
     docs: {
       description: {
-        story: 'Opt into the built-in dark theme by passing `theme="dark"` to the `GraphProvider`.',
+        story: 'Opt into the built-in dark theme by passing `colorScheme="dark"` to the `GraphProvider`.',
       },
     },
   },
@@ -58,7 +58,7 @@ export const Dark: Story = {
       data={salesData}
       spec={sharedSpec}
       config={{ type: 'columnStacked', axes: { y: { label: 'sales' } } }}
-      theme="dark"
+      colorScheme="dark"
     >
       <GraphRenderer />
     </VizStoryGraphProvider>

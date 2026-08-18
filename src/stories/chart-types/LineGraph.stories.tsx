@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 
 import { GraphRenderer } from '@graphysdk/react-renderer';
 import type { Data } from '@graphysdk/viz-engine';
-import { config, coord, createSpec, geom, mapping, pipe, scale, transform } from '@graphysdk/viz-engine';
+import { config, coord, createSpec, geom, mapping, pipe, scale, style, styles, transform } from '@graphysdk/viz-engine';
 
 import { ResizablePlotDecorator } from '../../addons/ResizablePlotDecorator';
 import { VizStoryGraphProvider } from '../../components/VizStoryGraphProvider';
@@ -36,6 +36,9 @@ type Story = StoryObj<LineGraphArgs>;
 
 const flipIfNeeded = (flipped: boolean) => (flipped ? [coord.flip()] : []);
 
+const fillIfNeeded = (showFill: boolean) =>
+  showFill ? [styles({ defaults: [style.geom.line({ fillAlpha: 0.15 })] })] : [];
+
 // ─── Simple line graph ─────────────────────────────────────────────────────
 const simpleData: Data = {
   columns: [{ key: 'month' }, { key: 'revenue' }],
@@ -50,15 +53,15 @@ const simpleData: Data = {
 };
 
 export const Simple: Story = {
-  args: { showFill: true },
   render: (args) => (
     <VizStoryGraphProvider
       data={simpleData}
       spec={pipe(
         createSpec({ x: 'month', y: 'revenue' }),
-        geom.line({ params: { showFill: args.showFill } }),
+        geom.line(),
         scale.x(),
         scale.y(),
+        ...fillIfNeeded(args.showFill),
         ...flipIfNeeded(args.flipped)
       )}
       config={{ type: 'line', options: { showFill: args.showFill } }}
@@ -97,12 +100,13 @@ export const MultiSeries: Story = {
           }),
           mapping({ x: 'month', y: 'sales', color: 'region' })
         ),
-        geom.line({ params: { showFill: args.showFill } }),
+        geom.line(),
         geom.point({ interactive: false }),
         scale.x(),
         scale.y(),
         scale.color.palette(),
         config({ legend: { position: 'top' } }),
+        ...fillIfNeeded(args.showFill),
         ...flipIfNeeded(args.flipped)
       )}
       config={{
@@ -146,12 +150,13 @@ export const LineStyles: Story = {
           }),
           mapping({ x: 'month', y: 'sales', color: 'region', lineType: 'region' })
         ),
-        geom.line({ params: { showFill: args.showFill } }),
+        geom.line(),
         scale.x(),
         scale.y(),
         scale.color.palette(),
         scale.lineType.discrete({ domain: [...LINE_STYLE_REGIONS], range: ['solid', 'dashed', 'dotted'] }),
         config({ legend: { position: 'top' } }),
+        ...fillIfNeeded(args.showFill),
         ...flipIfNeeded(args.flipped)
       )}
       config={{
@@ -180,9 +185,10 @@ export const Smooth: Story = {
       data={simpleData}
       spec={pipe(
         createSpec({ x: 'month', y: 'revenue' }),
-        geom.line({ params: { interpolate: 'catmull-rom', showFill: args.showFill } }),
+        geom.line({ params: { interpolate: 'catmull-rom' } }),
         scale.x(),
         scale.y(),
+        ...fillIfNeeded(args.showFill),
         ...flipIfNeeded(args.flipped)
       )}
       config={{ type: 'line', options: { isSmoothLine: true, showFill: args.showFill } }}
@@ -206,17 +212,15 @@ const missingData: Data = {
 };
 
 export const MissingValuesGap: Story = {
-  args: {
-    showFill: true,
-  },
   render: (args) => (
     <VizStoryGraphProvider
       data={missingData}
       spec={pipe(
         createSpec({ x: 'month', y: 'revenue' }),
-        geom.line({ params: { missingValues: 'gap', showFill: args.showFill } }),
+        geom.line({ params: { missingValues: 'gap' } }),
         scale.x(),
         scale.y(),
+        ...fillIfNeeded(args.showFill),
         ...flipIfNeeded(args.flipped)
       )}
       config={{ type: 'line', options: { missingValues: 'gap', showFill: args.showFill } }}
@@ -228,17 +232,15 @@ export const MissingValuesGap: Story = {
 
 // ─── With missing values (connect) ─────────────────────────────────────────
 export const MissingValuesConnect: Story = {
-  args: {
-    showFill: true,
-  },
   render: (args) => (
     <VizStoryGraphProvider
       data={missingData}
       spec={pipe(
         createSpec({ x: 'month', y: 'revenue' }),
-        geom.line({ params: { missingValues: 'connect', showFill: args.showFill } }),
+        geom.line({ params: { missingValues: 'connect' } }),
         scale.x(),
         scale.y(),
+        ...fillIfNeeded(args.showFill),
         ...flipIfNeeded(args.flipped)
       )}
       config={{ type: 'line', options: { missingValues: 'connect', showFill: args.showFill } }}
@@ -250,17 +252,15 @@ export const MissingValuesConnect: Story = {
 
 // ─── With missing values (zero) ────────────────────────────────────────────
 export const MissingValuesZero: Story = {
-  args: {
-    showFill: true,
-  },
   render: (args) => (
     <VizStoryGraphProvider
       data={missingData}
       spec={pipe(
         createSpec({ x: 'month', y: 'revenue' }),
-        geom.line({ params: { missingValues: 'zero', showFill: args.showFill } }),
+        geom.line({ params: { missingValues: 'zero' } }),
         scale.x(),
         scale.y(),
+        ...fillIfNeeded(args.showFill),
         ...flipIfNeeded(args.flipped)
       )}
       config={{ type: 'line', options: { missingValues: 'zero', showFill: args.showFill } }}

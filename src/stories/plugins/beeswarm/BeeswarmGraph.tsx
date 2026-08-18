@@ -5,18 +5,18 @@ import {
   defineGeomRenderer,
   GraphRenderer,
   type RenderHitTester,
+  useElementScreenRect,
   useGeomHitTest,
   useHoverState,
-  usePanelScreenRect,
 } from '@graphysdk/react-renderer';
 import type {
   CompiledGeom,
   CompiledLayer,
-  CompilerInput,
   Data,
   Dataset,
   GeomCompilerInput,
   IdentityKey,
+  SpecInput,
 } from '@graphysdk/viz-engine';
 import { Geom, getColor, getX } from '@graphysdk/viz-engine';
 
@@ -30,7 +30,7 @@ const POINT_HIT_RADIUS = POINT_RADIUS + 2;
 const FALLBACK_COLOR = '#888888';
 
 /**
- * A custom `beeswarm` geom — the ADR-036 **L3** reference. Its x is scale-derived (the engine trains the
+ * A custom `beeswarm` geom — the ADR-039 **L3** reference. Its x is scale-derived (the engine trains the
  * value axis and the renderer reads the `[0, 1]` position), but its off-axis dodge is a browser-computed
  * **pixel-radius collision**: the geometry depends on the panel's pixel size, so it can't be precomputed
  * in the DOM-free compiler the way an L2 sankey/treemap can. The placed geometry therefore lives in
@@ -99,21 +99,21 @@ function buildSwarmTester(placed: PlacedPoint[], width: number, height: number, 
 
 /**
  * Paints the swarm and owns its hover. The dodge needs the panel's pixel size, so it measures the panel
- * (`usePanelScreenRect`), lays the circles out in pixel space — true circles, since the panel SVG's user
+ * (`useElementScreenRect`), lays the circles out in pixel space — true circles, since the panel SVG's user
  * units are pixels — and registers the spatial query with `useGeomHitTest`. The hovered point is read
  * straight from the shared hover store and repainted on top, so the geom inherits the central tooltip and
  * needs no `renderHover` overlay.
  */
 const BeeswarmLayer = ({ layer }: { layer: CompiledLayer }) => {
-  const { ref, rect } = usePanelScreenRect();
+  const { measureRef, screenRect } = useElementScreenRect();
   const points = useMemo(() => readPoints(layer.data), [layer.data]);
   const placed = useMemo(
-    () => (rect ? computeSwarm(points, rect.width, rect.height, POINT_RADIUS) : []),
-    [points, rect]
+    () => (screenRect ? computeSwarm(points, screenRect.width, screenRect.height, POINT_RADIUS) : []),
+    [points, screenRect]
   );
   const tester = useMemo<RenderHitTester>(
-    () => (rect ? buildSwarmTester(placed, rect.width, rect.height, POINT_HIT_RADIUS) : () => null),
-    [placed, rect]
+    () => (screenRect ? buildSwarmTester(placed, screenRect.width, screenRect.height, POINT_HIT_RADIUS) : () => null),
+    [placed, screenRect]
   );
   useGeomHitTest(layer.id, tester);
 
@@ -124,7 +124,7 @@ const BeeswarmLayer = ({ layer }: { layer: CompiledLayer }) => {
 
   return (
     <>
-      <rect ref={ref} width="100%" height="100%" fill="transparent" pointerEvents="none" />
+      <rect ref={measureRef} width="100%" height="100%" fill="transparent" pointerEvents="none" />
       {placed.map((point) => (
         <circle
           key={point.index}
@@ -165,7 +165,7 @@ export const kit = createGraphyKit({
   ],
 });
 
-export const BeeswarmGraph = ({ input, data }: { input: CompilerInput; data: Data }) => {
+export const BeeswarmGraph = ({ input, data }: { input: SpecInput; data: Data }) => {
   return (
     <kit.GraphProvider input={input} data={data}>
       <GraphRenderer />

@@ -11,12 +11,12 @@ import {
 import type {
   CompiledGeom,
   CompiledLayer,
-  CompilerInput,
   Data,
   Dataset,
   GeomCompilerInput,
   IdentityKey,
   Observation,
+  SpecInput,
 } from '@graphysdk/viz-engine';
 import {
   createDatasetFromKindPartitions,
@@ -30,7 +30,7 @@ import {
 
 import { computeSankeyLayout } from './sankey-layout';
 
-/** The compile/render column vocabulary — the shared `*_COLUMNS` handshake (ADR-036 decision 7). */
+/** The compile/render column vocabulary — the shared `*_COLUMNS` handshake (ADR-039 decision 7). */
 const SANKEY_COLUMNS = {
   kind: 'kind',
   markId: 'markId',
@@ -459,7 +459,7 @@ export const kit = createGraphyKit({
   ],
 });
 
-export const SankeyGraph = ({ input, data }: { input: CompilerInput; data: Data }) => {
+export const SankeyGraph = ({ input, data }: { input: SpecInput; data: Data }) => {
   return (
     <kit.GraphProvider input={input} data={data}>
       <GraphRenderer />

@@ -48,6 +48,9 @@ interface ContentArgs {
   showSubtitle: boolean;
   showCaption: boolean;
   showSource: boolean;
+  showBrandMark: boolean;
+  brandMarkPlacement: 'footer' | 'header';
+  brandMarkVariant: 'full' | 'mini';
   mode: Mode;
   textScale: number;
 }
@@ -75,6 +78,21 @@ export const Demo: StoryObj<ContentArgs> = {
       control: { type: 'boolean' },
       description: 'Toggle the data source attribution via `config.content.isSourceVisible`.',
     },
+    showBrandMark: {
+      control: { type: 'boolean' },
+      description:
+        'Toggle the Made with Graphy badge via `config.content.brandMark.enabled`. Off by default — enable it and resize the plot to watch the ladder step down full → mini circle → hidden.',
+    },
+    brandMarkPlacement: {
+      control: { type: 'inline-radio' },
+      options: ['footer', 'header'],
+      description: 'Badge anchor: footer-right (default) or header top-right.',
+    },
+    brandMarkVariant: {
+      control: { type: 'inline-radio' },
+      options: ['full', 'mini'],
+      description: 'Full pill, or circular mini (hover expands in the live DOM).',
+    },
     mode: {
       control: { type: 'inline-radio' },
       options: ['readonly', 'editable'] satisfies Mode[],
@@ -91,6 +109,9 @@ export const Demo: StoryObj<ContentArgs> = {
     showSubtitle: true,
     showCaption: true,
     showSource: true,
+    showBrandMark: true,
+    brandMarkPlacement: 'footer',
+    brandMarkVariant: 'full',
     mode: 'editable',
     textScale: 1,
   },
@@ -103,7 +124,17 @@ export const Demo: StoryObj<ContentArgs> = {
     },
   },
   render: (args) => {
-    const { showTitle, showSubtitle, showCaption, showSource, textScale, mode } = args;
+    const {
+      showTitle,
+      showSubtitle,
+      showCaption,
+      showSource,
+      showBrandMark,
+      brandMarkPlacement,
+      brandMarkVariant,
+      textScale,
+      mode,
+    } = args;
     const input = useMemo(() => {
       return {
         spec: pipe(
@@ -118,6 +149,12 @@ export const Demo: StoryObj<ContentArgs> = {
               isCaptionVisible: showCaption,
               source: DEFAULT_SOURCE,
               isSourceVisible: showSource,
+              brandMark: {
+                enabled: showBrandMark,
+                placement: brandMarkPlacement,
+                variant: brandMarkVariant,
+              },
+              isBrandMarkVisible: showBrandMark,
             },
             appearance: { textScale },
           })
@@ -133,11 +170,25 @@ export const Demo: StoryObj<ContentArgs> = {
             isCaptionHidden: !showCaption,
             source: DEFAULT_SOURCE,
             isSourceHidden: !showSource,
+            brandMark: {
+              enabled: showBrandMark,
+              placement: brandMarkPlacement,
+              variant: brandMarkVariant,
+            },
           },
           appearance: { textScale },
         },
       };
-    }, [showTitle, showSubtitle, showCaption, showSource, textScale]);
+    }, [
+      showTitle,
+      showSubtitle,
+      showCaption,
+      showSource,
+      showBrandMark,
+      brandMarkPlacement,
+      brandMarkVariant,
+      textScale,
+    ]);
 
     return (
       <VizStoryGraphProvider data={salesData} spec={input.spec} config={input.config}>

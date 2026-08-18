@@ -1,14 +1,16 @@
 import type { Meta, StoryObj } from '@storybook/react';
 
 import { GraphRenderer } from '@graphysdk/react-renderer';
-import type { Data, GraphConfig } from '@graphysdk/viz-engine';
+import type { Data } from '@graphysdk/viz-engine';
 import { config, createSpec, geom, mapping, pipe, scale, transform } from '@graphysdk/viz-engine';
+import type { GraphConfig } from '@graphysdk/viz-engine/graph-config';
 
 import { ResizablePlotDecorator } from '../../addons/ResizablePlotDecorator';
 import { VizStoryGraphProvider } from '../../components/VizStoryGraphProvider';
 
 type LegendPosition = 'auto' | 'top' | 'right' | 'bottom' | 'left' | 'none';
 type LegendDisplay = 'auto' | 'pill' | 'direct';
+type LegendAlign = 'auto' | 'start' | 'center' | 'end';
 
 const meta: Meta = {
   title: 'Features/Legends',
@@ -19,6 +21,7 @@ export default meta;
 
 const POSITION_OPTIONS: LegendPosition[] = ['auto', 'top', 'right', 'bottom', 'left', 'none'];
 const DISPLAY_OPTIONS: LegendDisplay[] = ['auto', 'pill', 'direct'];
+const ALIGN_OPTIONS: LegendAlign[] = ['auto', 'start', 'center', 'end'];
 
 const positionControl = {
   control: { type: 'select' as const },
@@ -30,6 +33,13 @@ const displayControl = {
   control: { type: 'select' as const },
   options: DISPLAY_OPTIONS,
   description: 'Pill = boxed swatches; direct = inline labels at series endpoints (line/area/stacked-bar only).',
+};
+
+const alignControl = {
+  control: { type: 'select' as const },
+  options: ALIGN_OPTIONS,
+  description:
+    'Legend items along the flow: top/bottom run along the row (start = left), left/right run down the column (start = top). Vertical legends always pin to the plot border. auto = start for horizontal, center for vertical.',
 };
 
 /**
@@ -70,6 +80,7 @@ const barReshapeToLong = transform.reshape({
 interface BarLegendArgs {
   position: LegendPosition;
   display: LegendDisplay;
+  align: LegendAlign;
   barPosition: 'stack' | 'dodge' | 'fill';
 }
 
@@ -77,6 +88,7 @@ export const BarLegend: StoryObj<BarLegendArgs> = {
   argTypes: {
     position: positionControl,
     display: displayControl,
+    align: alignControl,
     barPosition: {
       control: { type: 'inline-radio' },
       options: ['stack', 'dodge', 'fill'],
@@ -86,6 +98,7 @@ export const BarLegend: StoryObj<BarLegendArgs> = {
   args: {
     position: 'auto',
     display: 'auto',
+    align: 'auto',
     barPosition: 'stack',
   },
   render: (args) => {
@@ -101,7 +114,7 @@ export const BarLegend: StoryObj<BarLegendArgs> = {
           subtitle: 'Sales by quarter and region',
           caption: 'Sales by quarter and region',
         },
-        legend: { position: args.position, display: args.display },
+        legend: { position: args.position, display: args.display, align: args.align },
         axes: { y: { label: 'sales' } },
       })
     );
@@ -158,16 +171,19 @@ const lineReshapeToLong = transform.reshape({
 interface LineLegendArgs {
   position: LegendPosition;
   display: LegendDisplay;
+  align: LegendAlign;
 }
 
 export const LineLegend: StoryObj<LineLegendArgs> = {
   argTypes: {
     position: positionControl,
     display: displayControl,
+    align: alignControl,
   },
   args: {
     position: 'auto',
     display: 'auto',
+    align: 'auto',
   },
   render: (args) => {
     const configPosition = toConfigLegendPosition(args.position, args.display);
@@ -199,7 +215,7 @@ export const LineLegend: StoryObj<LineLegendArgs> = {
               subtitle: 'Sales by quarter and region',
               caption: 'Sales by quarter and region',
             },
-            legend: { position: args.position, display: args.display },
+            legend: { position: args.position, display: args.display, align: args.align },
             axes: { y: { label: 'sales' } },
           })
         )}
@@ -216,16 +232,19 @@ export const LineLegend: StoryObj<LineLegendArgs> = {
 interface MultiLayerArgs {
   position: LegendPosition;
   display: LegendDisplay;
+  align: LegendAlign;
 }
 
 export const MultiLayer: StoryObj<MultiLayerArgs> = {
   argTypes: {
     position: positionControl,
     display: displayControl,
+    align: alignControl,
   },
   args: {
     position: 'auto',
     display: 'auto',
+    align: 'auto',
   },
   render: (args) => (
     <VizStoryGraphProvider
@@ -243,7 +262,7 @@ export const MultiLayer: StoryObj<MultiLayerArgs> = {
             subtitle: 'Sales by quarter and region',
             caption: 'Sales by quarter and region',
           },
-          legend: { position: args.position, display: args.display },
+          legend: { position: args.position, display: args.display, align: args.align },
         })
       )}
       config={{
@@ -280,6 +299,7 @@ const bubbleData: Data = {
 interface BubbleLegendArgs {
   position: LegendPosition;
   display: LegendDisplay;
+  align: LegendAlign;
   withColor: boolean;
 }
 
@@ -287,10 +307,12 @@ export const BubbleSize: StoryObj<BubbleLegendArgs> = {
   argTypes: {
     position: positionControl,
     display: displayControl,
+    align: alignControl,
   },
   args: {
     position: 'auto',
     display: 'auto',
+    align: 'auto',
   },
   render: (args) => (
     <VizStoryGraphProvider
@@ -311,7 +333,7 @@ export const BubbleSize: StoryObj<BubbleLegendArgs> = {
             subtitle: 'Sales by quarter and region',
             caption: 'Sales by quarter and region',
           },
-          legend: { position: args.position, display: args.display },
+          legend: { position: args.position, display: args.display, align: args.align },
         })
       )}
       config={{ type: 'bubble' }}
@@ -433,6 +455,7 @@ const overflowReshape = transform.reshape({
 
 interface OverflowLegendArgs {
   position: LegendPosition;
+  align: LegendAlign;
   textScale: number;
 }
 
@@ -445,6 +468,7 @@ interface OverflowLegendArgs {
 export const OverflowPillLegends: StoryObj<OverflowLegendArgs> = {
   argTypes: {
     position: positionControl,
+    align: alignControl,
     textScale: {
       control: { type: 'range', min: 0.5, max: 3, step: 0.1 },
       description: 'Scales all chart text. Direct-label spacing tracks the resolved line-box height.',
@@ -452,6 +476,7 @@ export const OverflowPillLegends: StoryObj<OverflowLegendArgs> = {
   },
   args: {
     position: 'top',
+    align: 'auto',
     textScale: 1,
   },
   render: (args) => (
@@ -465,7 +490,7 @@ export const OverflowPillLegends: StoryObj<OverflowLegendArgs> = {
         scale.color.palette(),
         config({
           content: { title: 'Regional sales' },
-          legend: { position: args.position, display: 'pill' },
+          legend: { position: args.position, display: 'pill', align: args.align },
           appearance: { textScale: args.textScale },
         })
       )}

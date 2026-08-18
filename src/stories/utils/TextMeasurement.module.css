@@ -1,0 +1,235 @@
+.container {
+  font-family: Inter, system-ui, sans-serif;
+  padding: 16px;
+}
+
+.containerPending {
+  opacity: 0.6;
+}
+
+/* ─── Legend ──────────────────────────────────────────────────────────────── */
+
+.legend {
+  display: flex;
+  gap: 16px;
+  font-size: 12px;
+  margin-bottom: 16px;
+  color: #666;
+}
+
+.legendSwatch {
+  display: inline-block;
+  width: 14px;
+  margin-right: 4px;
+  border-radius: 1px;
+}
+
+.legendSwatchDom {
+  height: 3px;
+  background-color: #3b82f6;
+}
+
+.legendSwatchCanvas {
+  height: 2px;
+  background-color: #22c55e;
+}
+
+.legendSwatchHeuristic {
+  height: 2px;
+  background-color: #f59e0b;
+}
+
+/* ─── Info line ──────────────────────────────────────────────────────────── */
+
+.info {
+  font-size: 13px;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+/* ─── Section ────────────────────────────────────────────────────────────── */
+
+.section {
+  margin-bottom: 32px;
+}
+
+.sectionTitle {
+  margin: 0 0 4px 0;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+/* ─── Table ──────────────────────────────────────────────────────────────── */
+
+.table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 13px;
+}
+
+.tableHead {
+  border-bottom: 2px solid #e5e7eb;
+  text-align: left;
+}
+
+.th {
+  padding: 4px 8px;
+}
+
+.thLabel {
+  width: 160px;
+}
+
+.thNumeric {
+  width: 80px;
+  text-align: right;
+}
+
+.thError {
+  width: 72px;
+  text-align: center;
+}
+
+.thWidth100 {
+  width: 100px;
+  text-align: right;
+}
+
+.row {
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.cell {
+  padding: 6px 8px;
+}
+
+.cellLabel {
+  font-weight: 500;
+}
+
+.cellNumeric {
+  text-align: right;
+  font-family: monospace;
+  font-size: 12px;
+}
+
+.cellCenter {
+  text-align: center;
+}
+
+.cellPreview {
+  max-width: 300px;
+  overflow: hidden;
+}
+
+.labelSub {
+  font-size: 10px;
+  color: #999;
+  font-family: monospace;
+}
+
+/* ─── Error badge ────────────────────────────────────────────────────────── */
+
+.badge {
+  display: inline-block;
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  font-family: monospace;
+  color: #fff;
+  min-width: 52px;
+  text-align: center;
+}
+
+.badgeGreen {
+  background-color: #22c55e;
+}
+
+.badgeYellow {
+  background-color: #f59e0b;
+}
+
+.badgeOrange {
+  background-color: #f97316;
+}
+
+.badgeRed {
+  background-color: #ef4444;
+}
+
+/* ─── Visual overlay ─────────────────────────────────────────────────────── */
+
+.overlay {
+  position: relative;
+  margin-bottom: 2px;
+}
+
+.overlayText {
+  position: absolute;
+  top: 0;
+  left: 0;
+  white-space: nowrap;
+  z-index: 2;
+}
+
+.overlayEmpty {
+  opacity: 0.3;
+  font-style: italic;
+  font-size: 11px;
+}
+
+.overlayLineDom {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 3px;
+  background-color: #3b82f6;
+  border-radius: 1px;
+  opacity: 0.7;
+}
+
+.overlayLineCanvas {
+  position: absolute;
+  bottom: 7px;
+  left: 0;
+  height: 2px;
+  background-color: #22c55e;
+  border-radius: 1px;
+  opacity: 0.8;
+}
+
+.overlayLineHeuristic {
+  position: absolute;
+  bottom: 4px;
+  left: 0;
+  height: 2px;
+  background-color: #f59e0b;
+  border-radius: 1px;
+  opacity: 0.8;
+}
+
+/* ─── Canvas-only preview ────────────────────────────────────────────────── */
+
+.previewWrapper {
+  position: relative;
+  overflow: hidden;
+}
+
+.previewText {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+  max-width: 300px;
+}
+
+.previewLine {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  background-color: #22c55e;
+  border-radius: 1px;
+  opacity: 0.7;
+}

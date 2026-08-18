@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import type { Meta, StoryObj } from '@storybook/react';
 import { useCallback } from 'react';
 
@@ -7,20 +6,23 @@ import {
   GraphProvider,
   GraphRenderer,
   useCompiledSelector,
-  useGraphCommandDispatcher,
+  useGraphCommands,
 } from '@graphysdk/react-renderer';
 import type { Command, Data, Spec } from '@graphysdk/viz-engine';
 import {
   config,
   createSpec,
+  findStyleRule,
   geom,
   highlight,
   pipe,
   scale,
   SetAxisPositionCommand,
   SetHeadlineShowCommand,
-  SetLineWidthCommand,
   SetScaleDomainCommand,
+  SetStyleRuleCommand,
+  style,
+  styles,
   transform,
 } from '@graphysdk/viz-engine';
 
@@ -65,12 +67,13 @@ const RAW_DATA: Data = {
 
 const BASE_SPEC = pipe(
   createSpec({ x: 'date', y: 'value', color: 'series' }),
-  geom.line({ params: { lineWidth: 2 } }),
+  geom.line(),
   geom.point({
+    id: 'markers',
     aes: { y: 'monthlyMarker' },
     transforms: [transform.filter({ variableName: 'isMonthlyMarker', operator: 'eq', value: 1 })],
-    params: { size: 6 },
   }),
+  styles({ defaults: [style.geom.line({ strokeWidth: 2 }), style.geom.point({ size: 6 })] }),
   scale.x(),
   scale.y(),
   scale.color.palette(),
@@ -82,14 +85,13 @@ const BASE_SPEC = pipe(
         { variable: 'monthlyMarker', lte: 215 },
       ],
     },
-    { scope: 'data-point', layerIndex: 1 }
+    { scope: 'data-point', layerId: 'markers' }
   ),
   config({
     content: {
       title: `Compile cache demo · ${ROW_COUNT.toLocaleString()} rows · 2 layers · 2 highlights`,
       subtitle: 'Dispatch a command; the dev panel shows which stages re-ran and how long they took.',
     },
-    appearance: { highlightStyle: 'dim' },
   })
 );
 
@@ -131,18 +133,22 @@ const COMMANDS: CommandEntry[] = [
     },
   },
   {
-    label: 'setLineWidth (line: 5 ↔ 2)',
-    description: 'Per-layer. The line layer re-runs the pipeline; the point layer hits the WeakMap cache.',
+    label: 'setStyleRule (line stroke: 5 ↔ 2)',
+    description: 'Styles-touching. The styles stage re-runs per layer; earlier stages hit cache.',
     build: (spec) => {
-      const target = spec.layers.find((layer) => layer.geom === 'line' || layer.geom === 'area');
-      const currentWidth = target && 'lineWidth' in target.params ? target.params.lineWidth : undefined;
-      return new SetLineWidthCommand({ lineWidth: currentWidth === 5 ? 2 : 5 });
+      const current = findStyleRule(spec.styles.overrides, { select: { target: 'geom', kind: 'line' } });
+      const currentWidth =
+        current?.declarations && 'strokeWidth' in current.declarations ? current.declarations.strokeWidth : undefined;
+      return new SetStyleRuleCommand({
+        list: 'overrides',
+        rule: style.geom.line({ strokeWidth: currentWidth === 5 ? 2 : 5 }),
+      });
     },
   },
 ];
 
 const StoryShell = () => {
-  const dispatch = useGraphCommandDispatcher();
+  const { dispatch } = useGraphCommands();
   const currentSpec = useCompiledSelector((compiled) => compiled.spec);
 
   const run = useCallback(
