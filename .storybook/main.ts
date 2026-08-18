@@ -33,6 +33,9 @@ const config: StorybookConfig = {
       // default 'es2020' target. Storybook is internal tooling, so target the modern
       // engines its runtime already assumes.
       build: { target: 'esnext' },
+      optimizeDeps: {
+        include: ['styled-components', 'react-intl', 'd3-shape'],
+      },
     }),
 };
 
