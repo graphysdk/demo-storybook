@@ -10,10 +10,10 @@ importers:
     dependencies:
       '@graphysdk/react-renderer':
         specifier: beta
-        version: 1.8.1-beta.1786952756412(4871fdacf356d788918b08d12ccc5cb2)
+        version: 1.8.1-beta.1787049802566(4871fdacf356d788918b08d12ccc5cb2)
       '@graphysdk/viz-engine':
         specifier: beta
-        version: 1.8.1-beta.1786952756412
+        version: 1.8.1-beta.1787049802566
       '@storybook/addon-docs':
         specifier: ^10.5.5
         version: 10.5.9(@types/react-dom@19.2.3(@types/react@19.2.17))(@types/react@19.2.17)(esbuild@0.28.1)(rollup@4.62.2)(storybook@10.5.9(@types/react@19.2.17)(prettier@3.9.5)(react@19.2.7))(vite@8.2.1(@types/node@26.1.1)(esbuild@0.28.1))
@@ -544,8 +544,8 @@ packages:
       typescript:
         optional: true
 
-  '@graphysdk/react-renderer@1.8.1-beta.1786952756412':
-    resolution: {integrity: sha512-F0ZA5iEZGKNnDCgQphgbcBxSFt4r8maZZ8bc1R/NWcHdQpgRzxE95dOppPT3/ekKjJPHHtkgfGPOZnEHSZAZrQ==}
+  '@graphysdk/react-renderer@1.8.1-beta.1787049802566':
+    resolution: {integrity: sha512-Z3g7bfEeHNgekAO4/2y+d29hRde9bRtNxhtgQ0ZHo0cEZOQrD4VJAPluTOb++KL9F4peaszdhjB3d2tw25DNLQ==}
     peerDependencies:
       '@tiptap/core': ^3.0.0
       '@tiptap/extension-bold': ^3.0.0
@@ -564,8 +564,8 @@ packages:
       '@tiptap/react': ^3.0.0
       react: ^19.0.0
 
-  '@graphysdk/viz-engine@1.8.1-beta.1786952756412':
-    resolution: {integrity: sha512-HhC6HmX5HeqdLC8ZgnvFCmphuj7oKbsU4eRuVsMqyjspxQ6okZ+B/A6qtKgUN0ds6b947smOnU/FMgFUsNHwxg==}
+  '@graphysdk/viz-engine@1.8.1-beta.1787049802566':
+    resolution: {integrity: sha512-ahFESPUD6GH4AoLTzY0c6CXi9SITXD5+uGJtAKSsRouyuyVKhHRrzP7wsd2UwnHtxnR9el9ZOUEpjdIbeAag+A==}
 
   '@humanfs/core@0.19.2':
     resolution: {integrity: sha512-UhXNm+CFMWcbChXywFwkmhqjs3PRCmcSa/hfBgLIb7oQ5HNb1wS0icWsGtSAUNgefHeI+eBrA8I1fxmbHsGdvA==}
@@ -4199,11 +4199,11 @@ snapshots:
     optionalDependencies:
       typescript: 5.9.3
 
-  '@graphysdk/react-renderer@1.8.1-beta.1786952756412(4871fdacf356d788918b08d12ccc5cb2)':
+  '@graphysdk/react-renderer@1.8.1-beta.1787049802566(4871fdacf356d788918b08d12ccc5cb2)':
     dependencies:
       '@base-ui/react': 1.6.0(@types/react@19.2.17)(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
       '@floating-ui/react-dom': 2.1.9(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
-      '@graphysdk/viz-engine': 1.8.1-beta.1786952756412
+      '@graphysdk/viz-engine': 1.8.1-beta.1787049802566
       '@tiptap/core': 3.27.3(@tiptap/pm@3.27.3)
       '@tiptap/extension-bold': 3.27.3(@tiptap/core@3.27.3(@tiptap/pm@3.27.3))
       '@tiptap/extension-document': 3.27.3(@tiptap/core@3.27.3(@tiptap/pm@3.27.3))
@@ -4242,7 +4242,7 @@ snapshots:
       - typescript
       - use-sync-external-store
 
-  '@graphysdk/viz-engine@1.8.1-beta.1786952756412':
+  '@graphysdk/viz-engine@1.8.1-beta.1787049802566':
     dependencies:
       arquero: 5.4.1
       color2k: 2.0.4
