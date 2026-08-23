@@ -4,7 +4,6 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   plugins: [react()],
   optimizeDeps: {
-    include: ['react-intl'],
-    exclude: ['@graphysdk/i18n'],
+    include: ['styled-components', 'react-intl', 'd3-shape'],
   },
 });

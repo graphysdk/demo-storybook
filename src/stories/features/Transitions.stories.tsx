@@ -2,8 +2,9 @@ import type { Meta, StoryObj } from '@storybook/react';
 import { useMemo, useState } from 'react';
 
 import { GraphRenderer } from '@graphysdk/react-renderer';
-import type { Data, GraphConfig } from '@graphysdk/viz-engine';
+import type { Data } from '@graphysdk/viz-engine';
 import { config, coord, createSpec, geom, mapping, pipe, scale, transform } from '@graphysdk/viz-engine';
+import type { GraphConfig } from '@graphysdk/viz-engine/graph-config';
 
 import { ResizablePlotDecorator } from '../../addons/ResizablePlotDecorator';
 import { VizStoryGraphProvider } from '../../components/VizStoryGraphProvider';
@@ -116,11 +117,11 @@ const DatasetSwitcher = <T extends string>({
   );
 };
 
-const AnimationToggle = ({ isAnimated, onChange }: { isAnimated: boolean; onChange: (value: boolean) => void }) => {
+const TransitionsToggle = ({ isEnabled, onChange }: { isEnabled: boolean; onChange: (value: boolean) => void }) => {
   return (
     <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-      Animations:
-      <input type="checkbox" checked={isAnimated} onChange={(event) => onChange(event.target.checked)} />
+      Transitions:
+      <input type="checkbox" checked={isEnabled} onChange={(event) => onChange(event.target.checked)} />
     </label>
   );
 };
@@ -189,7 +190,7 @@ const buildScatterData = (name: ScatterDatasetName): Data => ({
 
 export const PointTransitions: Story = {
   render: () => {
-    const [isAnimated, setIsAnimated] = useState(true);
+    const [areTransitionsEnabled, setAreTransitionsEnabled] = useState(true);
     const [active, setActive] = useState<ScatterDatasetName>(FIRST_SCATTER_DATASET);
 
     const data = useMemo(() => buildScatterData(active), [active]);
@@ -204,9 +205,9 @@ export const PointTransitions: Story = {
       <VizStoryGraphProvider data={data} spec={initialSpec} config={initialConfig}>
         <ControlsRow>
           <DatasetSwitcher names={scatterDatasetNames} active={active} onChange={setActive} />
-          <AnimationToggle isAnimated={isAnimated} onChange={setIsAnimated} />
+          <TransitionsToggle isEnabled={areTransitionsEnabled} onChange={setAreTransitionsEnabled} />
         </ControlsRow>
-        <GraphRenderer isAnimated={isAnimated} />
+        <GraphRenderer animation={{ transitions: areTransitionsEnabled }} />
       </VizStoryGraphProvider>
     );
   },
@@ -216,7 +217,7 @@ export const PointTransitions: Story = {
 
 export const BarTransitions: Story = {
   render: () => {
-    const [isAnimated, setIsAnimated] = useState(true);
+    const [areTransitionsEnabled, setAreTransitionsEnabled] = useState(true);
     const [active, setActive] = useState<DatasetName>(FIRST_DATASET);
 
     const data = useMemo(() => buildSingleSeriesData(active), [active]);
@@ -231,9 +232,9 @@ export const BarTransitions: Story = {
       <VizStoryGraphProvider data={data} spec={initialSpec} config={initialConfig}>
         <ControlsRow>
           <DatasetSwitcher names={datasetNames} active={active} onChange={setActive} />
-          <AnimationToggle isAnimated={isAnimated} onChange={setIsAnimated} />
+          <TransitionsToggle isEnabled={areTransitionsEnabled} onChange={setAreTransitionsEnabled} />
         </ControlsRow>
-        <GraphRenderer isAnimated={isAnimated} />
+        <GraphRenderer animation={{ transitions: areTransitionsEnabled }} />
       </VizStoryGraphProvider>
     );
   },
@@ -243,7 +244,7 @@ export const BarTransitions: Story = {
 
 export const LineTransitions: Story = {
   render: () => {
-    const [isAnimated, setIsAnimated] = useState(true);
+    const [areTransitionsEnabled, setAreTransitionsEnabled] = useState(true);
     const [active, setActive] = useState<DatasetName>(FIRST_DATASET);
 
     const data = useMemo(() => buildSingleSeriesData(active), [active]);
@@ -258,9 +259,9 @@ export const LineTransitions: Story = {
       <VizStoryGraphProvider data={data} spec={initialSpec} config={initialConfig}>
         <ControlsRow>
           <DatasetSwitcher names={datasetNames} active={active} onChange={setActive} />
-          <AnimationToggle isAnimated={isAnimated} onChange={setIsAnimated} />
+          <TransitionsToggle isEnabled={areTransitionsEnabled} onChange={setAreTransitionsEnabled} />
         </ControlsRow>
-        <GraphRenderer isAnimated={isAnimated} />
+        <GraphRenderer animation={{ transitions: areTransitionsEnabled }} />
       </VizStoryGraphProvider>
     );
   },
@@ -270,7 +271,7 @@ export const LineTransitions: Story = {
 
 export const AreaTransitions: Story = {
   render: () => {
-    const [isAnimated, setIsAnimated] = useState(true);
+    const [areTransitionsEnabled, setAreTransitionsEnabled] = useState(true);
     const [active, setActive] = useState<DatasetName>(FIRST_DATASET);
 
     const data = useMemo(() => buildSingleSeriesData(active), [active]);
@@ -285,9 +286,9 @@ export const AreaTransitions: Story = {
       <VizStoryGraphProvider data={data} spec={initialSpec} config={initialConfig}>
         <ControlsRow>
           <DatasetSwitcher names={datasetNames} active={active} onChange={setActive} />
-          <AnimationToggle isAnimated={isAnimated} onChange={setIsAnimated} />
+          <TransitionsToggle isEnabled={areTransitionsEnabled} onChange={setAreTransitionsEnabled} />
         </ControlsRow>
-        <GraphRenderer isAnimated={isAnimated} />
+        <GraphRenderer animation={{ transitions: areTransitionsEnabled }} />
       </VizStoryGraphProvider>
     );
   },
@@ -297,7 +298,7 @@ export const AreaTransitions: Story = {
 
 export const StackedBarTransitions: Story = {
   render: () => {
-    const [isAnimated, setIsAnimated] = useState(true);
+    const [areTransitionsEnabled, setAreTransitionsEnabled] = useState(true);
     const [active, setActive] = useState<MultiDatasetName>(FIRST_MULTI_DATASET);
 
     const data = useMemo(() => buildMultiSeriesData(active), [active]);
@@ -325,9 +326,9 @@ export const StackedBarTransitions: Story = {
       <VizStoryGraphProvider data={data} spec={initialSpec} config={initialConfig}>
         <ControlsRow>
           <DatasetSwitcher names={multiDatasetNames} active={active} onChange={setActive} />
-          <AnimationToggle isAnimated={isAnimated} onChange={setIsAnimated} />
+          <TransitionsToggle isEnabled={areTransitionsEnabled} onChange={setAreTransitionsEnabled} />
         </ControlsRow>
-        <GraphRenderer isAnimated={isAnimated} />
+        <GraphRenderer animation={{ transitions: areTransitionsEnabled }} />
       </VizStoryGraphProvider>
     );
   },
@@ -337,7 +338,7 @@ export const StackedBarTransitions: Story = {
 
 export const MultiLineTransitions: Story = {
   render: () => {
-    const [isAnimated, setIsAnimated] = useState(true);
+    const [areTransitionsEnabled, setAreTransitionsEnabled] = useState(true);
     const [active, setActive] = useState<MultiDatasetName>(FIRST_MULTI_DATASET);
 
     const data = useMemo(() => buildMultiSeriesData(active), [active]);
@@ -359,9 +360,9 @@ export const MultiLineTransitions: Story = {
       <VizStoryGraphProvider data={data} spec={initialSpec} config={initialConfig}>
         <ControlsRow>
           <DatasetSwitcher names={multiDatasetNames} active={active} onChange={setActive} />
-          <AnimationToggle isAnimated={isAnimated} onChange={setIsAnimated} />
+          <TransitionsToggle isEnabled={areTransitionsEnabled} onChange={setAreTransitionsEnabled} />
         </ControlsRow>
-        <GraphRenderer isAnimated={isAnimated} />
+        <GraphRenderer animation={{ transitions: areTransitionsEnabled }} />
       </VizStoryGraphProvider>
     );
   },
@@ -371,7 +372,7 @@ export const MultiLineTransitions: Story = {
 
 export const StackedAreaTransitions: Story = {
   render: () => {
-    const [isAnimated, setIsAnimated] = useState(true);
+    const [areTransitionsEnabled, setAreTransitionsEnabled] = useState(true);
     const [active, setActive] = useState<MultiDatasetName>(FIRST_MULTI_DATASET);
 
     const data = useMemo(() => buildMultiSeriesData(active), [active]);
@@ -399,9 +400,9 @@ export const StackedAreaTransitions: Story = {
       <VizStoryGraphProvider data={data} spec={initialSpec} config={initialConfig}>
         <ControlsRow>
           <DatasetSwitcher names={multiDatasetNames} active={active} onChange={setActive} />
-          <AnimationToggle isAnimated={isAnimated} onChange={setIsAnimated} />
+          <TransitionsToggle isEnabled={areTransitionsEnabled} onChange={setAreTransitionsEnabled} />
         </ControlsRow>
-        <GraphRenderer isAnimated={isAnimated} />
+        <GraphRenderer animation={{ transitions: areTransitionsEnabled }} />
       </VizStoryGraphProvider>
     );
   },
@@ -409,6 +410,8 @@ export const StackedAreaTransitions: Story = {
 
 // ─── Pie transitions ──────────────────────────────────────────────────────
 
+// Every dataset shares the same categories so slices keep their identity across switches and
+// tween between shapes, rather than remounting and sweeping in as a whole new pie.
 const pieDatasetRows = {
   budget: [
     { category: 'Engineering', value: 420 },
@@ -418,24 +421,29 @@ const pieDatasetRows = {
     { category: 'HR', value: 80 },
     { category: 'Legal', value: 75 },
   ],
-  marketShare: [
-    { category: 'Chrome', value: 65 },
-    { category: 'Safari', value: 18 },
-    { category: 'Firefox', value: 7 },
-    { category: 'Edge', value: 5 },
-    { category: 'Other', value: 5 },
+  afterCuts: [
+    { category: 'Engineering', value: 300 },
+    { category: 'Marketing', value: 60 },
+    { category: 'Sales', value: 140 },
+    { category: 'Operations', value: 90 },
+    { category: 'HR', value: 45 },
+    { category: 'Legal', value: 70 },
   ],
   evenSplit: [
-    { category: 'A', value: 25 },
-    { category: 'B', value: 25 },
-    { category: 'C', value: 25 },
-    { category: 'D', value: 25 },
+    { category: 'Engineering', value: 100 },
+    { category: 'Marketing', value: 100 },
+    { category: 'Sales', value: 100 },
+    { category: 'Operations', value: 100 },
+    { category: 'HR', value: 100 },
+    { category: 'Legal', value: 100 },
   ],
-  dominant: [
-    { category: 'Main', value: 70 },
-    { category: 'Secondary', value: 15 },
-    { category: 'Tertiary', value: 10 },
-    { category: 'Other', value: 5 },
+  engineeringHeavy: [
+    { category: 'Engineering', value: 700 },
+    { category: 'Marketing', value: 60 },
+    { category: 'Sales', value: 80 },
+    { category: 'Operations', value: 50 },
+    { category: 'HR', value: 40 },
+    { category: 'Legal', value: 30 },
   ],
 } as const;
 
@@ -450,7 +458,7 @@ const buildPieData = (name: PieDatasetName): Data => ({
 
 export const PieTransitions: Story = {
   render: () => {
-    const [isAnimated, setIsAnimated] = useState(true);
+    const [areTransitionsEnabled, setAreTransitionsEnabled] = useState(true);
     const [active, setActive] = useState<PieDatasetName>(FIRST_PIE_DATASET);
 
     const data = useMemo(() => buildPieData(active), [active]);
@@ -473,9 +481,9 @@ export const PieTransitions: Story = {
       <VizStoryGraphProvider data={data} spec={initialSpec} config={initialConfig}>
         <ControlsRow>
           <DatasetSwitcher names={pieDatasetNames} active={active} onChange={setActive} />
-          <AnimationToggle isAnimated={isAnimated} onChange={setIsAnimated} />
+          <TransitionsToggle isEnabled={areTransitionsEnabled} onChange={setAreTransitionsEnabled} />
         </ControlsRow>
-        <GraphRenderer isAnimated={isAnimated} />
+        <GraphRenderer animation={{ transitions: areTransitionsEnabled }} />
       </VizStoryGraphProvider>
     );
   },
@@ -485,7 +493,7 @@ export const PieTransitions: Story = {
 
 export const DonutTransitions: Story = {
   render: () => {
-    const [isAnimated, setIsAnimated] = useState(true);
+    const [areTransitionsEnabled, setAreTransitionsEnabled] = useState(true);
     const [active, setActive] = useState<PieDatasetName>(FIRST_PIE_DATASET);
 
     const data = useMemo(() => buildPieData(active), [active]);
@@ -508,9 +516,78 @@ export const DonutTransitions: Story = {
       <VizStoryGraphProvider data={data} spec={initialSpec} config={initialConfig}>
         <ControlsRow>
           <DatasetSwitcher names={pieDatasetNames} active={active} onChange={setActive} />
-          <AnimationToggle isAnimated={isAnimated} onChange={setIsAnimated} />
+          <TransitionsToggle isEnabled={areTransitionsEnabled} onChange={setAreTransitionsEnabled} />
         </ControlsRow>
-        <GraphRenderer isAnimated={isAnimated} />
+        <GraphRenderer animation={{ transitions: areTransitionsEnabled }} />
+      </VizStoryGraphProvider>
+    );
+  },
+};
+
+// ─── Rose transitions (value grows the radius) ─────────────────────────────
+
+export const RoseTransitions: Story = {
+  render: () => {
+    const [areTransitionsEnabled, setAreTransitionsEnabled] = useState(true);
+    const [active, setActive] = useState<DatasetName>(FIRST_DATASET);
+
+    // Months stay fixed across datasets, so each wedge keeps its identity and its radius springs
+    // to the new value.
+    const data = useMemo(() => buildSingleSeriesData(active), [active]);
+    const initialSpec = useMemo(
+      () =>
+        pipe(
+          createSpec({ x: 'month', y: 'revenue', color: 'month' }),
+          geom.bar({ position: 'identity' }),
+          coord.polar({ theta: 'x' }),
+          scale.x.discrete(),
+          scale.y({ zero: true }),
+          scale.color.palette()
+        ),
+      []
+    );
+
+    return (
+      <VizStoryGraphProvider data={data} spec={initialSpec}>
+        <ControlsRow>
+          <DatasetSwitcher names={datasetNames} active={active} onChange={setActive} />
+          <TransitionsToggle isEnabled={areTransitionsEnabled} onChange={setAreTransitionsEnabled} />
+        </ControlsRow>
+        <GraphRenderer animation={{ transitions: areTransitionsEnabled }} />
+      </VizStoryGraphProvider>
+    );
+  },
+};
+
+// ─── Radial bar transitions (value sweeps the angle) ───────────────────────
+
+export const RadialBarTransitions: Story = {
+  render: () => {
+    const [areTransitionsEnabled, setAreTransitionsEnabled] = useState(true);
+    const [active, setActive] = useState<DatasetName>(FIRST_DATASET);
+
+    // One concentric track per month; switching datasets springs each track's sweep to the new value.
+    const data = useMemo(() => buildSingleSeriesData(active), [active]);
+    const initialSpec = useMemo(
+      () =>
+        pipe(
+          createSpec({ x: 'month', y: 'revenue', color: 'month' }),
+          geom.bar({ position: 'identity' }),
+          coord.polar({ theta: 'y', innerRadius: 0.15 }),
+          scale.x.discrete(),
+          scale.y({ zero: true }),
+          scale.color.palette()
+        ),
+      []
+    );
+
+    return (
+      <VizStoryGraphProvider data={data} spec={initialSpec}>
+        <ControlsRow>
+          <DatasetSwitcher names={datasetNames} active={active} onChange={setActive} />
+          <TransitionsToggle isEnabled={areTransitionsEnabled} onChange={setAreTransitionsEnabled} />
+        </ControlsRow>
+        <GraphRenderer animation={{ transitions: areTransitionsEnabled }} />
       </VizStoryGraphProvider>
     );
   },
@@ -619,7 +696,7 @@ const LargeDatasetControls = ({
 
 export const LargeDataset: Story = {
   render: () => {
-    const [isAnimated, setIsAnimated] = useState(true);
+    const [areTransitionsEnabled, setAreTransitionsEnabled] = useState(true);
     const [size, setSize] = useState<SizeName>(FIRST_SIZE);
     const [variant, setVariant] = useState<DatasetVariant>(FIRST_VARIANT);
 
@@ -650,9 +727,9 @@ export const LargeDataset: Story = {
       <VizStoryGraphProvider data={data} spec={initialSpec} config={initialConfig}>
         <div style={{ display: 'flex', gap: 16, alignItems: 'center', justifyContent: 'space-between' }}>
           <LargeDatasetControls size={size} variant={variant} onSizeChange={setSize} onVariantChange={setVariant} />
-          <AnimationToggle isAnimated={isAnimated} onChange={setIsAnimated} />
+          <TransitionsToggle isEnabled={areTransitionsEnabled} onChange={setAreTransitionsEnabled} />
         </div>
-        <GraphRenderer isAnimated={isAnimated} />
+        <GraphRenderer animation={{ transitions: areTransitionsEnabled }} />
       </VizStoryGraphProvider>
     );
   },

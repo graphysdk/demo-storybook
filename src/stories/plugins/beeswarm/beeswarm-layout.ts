@@ -20,7 +20,7 @@ const EPSILON = 1e-6;
  * The beeswarm dodge: every point sits at its scaled x and is nudged off the centre line just far enough
  * to clear each already-placed neighbour by one collision diameter. The collision is a **pixel** property
  * — the radius is a fixed pixel count, so a point's clearance depends on the panel's pixel size — which is
- * why this runs render-side (ADR-036 L3), not in the DOM-free compiler that owns the scale-derived x.
+ * why this runs render-side (ADR-039 L3), not in the DOM-free compiler that owns the scale-derived x.
  *
  * Points are placed left-to-right, so each only has to clear the neighbours already laid down in its
  * column (those within one diameter on x). For each, the candidate ys are the centre line plus the two

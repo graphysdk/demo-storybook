@@ -1,9 +1,10 @@
 import type { Preview } from '@storybook/react';
 import { IntlProvider } from 'react-intl';
 
-import type { GraphTheme, Locale } from '@graphysdk/viz-engine';
+import type { ColorScheme } from '@graphysdk/viz-engine';
 
 import { ResetStyles } from '../src/components/CssReset';
+import type { FooterMode, Locale } from '../src/components/StorybookGlobalsContext';
 import { StorybookGlobalsContext } from '../src/components/StorybookGlobalsContext';
 
 const preview: Preview = {
@@ -14,6 +15,7 @@ const preview: Preview = {
       },
     },
     controls: {
+      disableSaveFromUI: true,
       matchers: {
         color: /(background|color)$/i,
         date: /Date$/i,
@@ -32,15 +34,21 @@ const preview: Preview = {
     locale: 'en-GB',
     backgrounds: { value: '#ffffff' },
     vizApi: 'spec',
+    footer: 'default',
   },
   decorators: [
     (Story, context) => {
-      const theme = (context.globals.theme as GraphTheme | undefined) ?? 'light';
+      const theme = (context.globals.theme as ColorScheme | undefined) ?? 'light';
       const locale = (context.globals.locale || 'en-GB') as Locale;
 
       return (
         <StorybookGlobalsContext.Provider
-          value={{ theme, locale, vizApi: (context.globals.vizApi || 'spec') as 'spec' | 'config' }}
+          value={{
+            theme,
+            locale,
+            vizApi: (context.globals.vizApi || 'spec') as 'spec' | 'config',
+            footer: (context.globals.footer || 'default') as FooterMode,
+          }}
         >
           <Story />
         </StorybookGlobalsContext.Provider>
@@ -103,7 +111,24 @@ export const globalTypes = {
       dynamicTitle: true,
     },
   },
+  footer: {
+    name: 'Footer',
+    description:
+      'Force footer content across every story: a demo user footer (source / caption) and/or the Made with Graphy provenance badge. Use a "source + brand mark" option to see source-left + badge-right anywhere.',
+    toolbar: {
+      icon: 'document',
+      items: [
+        { title: 'Footer: story default', value: 'default' },
+        { title: 'Brand mark', value: 'markShown' },
+        { title: 'Brand mark hidden', value: 'markHidden' },
+        { title: 'Sample source', value: 'source' },
+        { title: 'Sample source + brand mark', value: 'sourceMark' },
+        { title: 'Sample source + caption', value: 'sourceCaption' },
+        { title: 'Sample source + caption + brand mark', value: 'sourceCaptionMark' },
+      ],
+      dynamicTitle: true,
+    },
+  },
 };
 
-// eslint-disable-next-line import-x/no-default-export
 export default preview;

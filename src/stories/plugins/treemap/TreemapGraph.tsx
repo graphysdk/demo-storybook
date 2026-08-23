@@ -10,12 +10,12 @@ import {
 import {
   type CompiledGeom,
   type CompiledLayer,
-  type CompilerInput,
   type Data,
   type Dataset,
   type GeomCompilerInput,
   type IdentityKey,
   type Observation,
+  type SpecInput,
   toPercent,
 } from '@graphysdk/viz-engine';
 import {
@@ -29,7 +29,7 @@ import {
 
 import { computeTreemapLayout, type TreemapLeaf } from './treemap-layout';
 
-/** The compile/render column vocabulary — the shared `*_COLUMNS` handshake (ADR-036 decision 7). */
+/** The compile/render column vocabulary — the shared `*_COLUMNS` handshake (ADR-039 decision 7). */
 const TREEMAP_COLUMNS = {
   kind: 'kind',
   markId: 'markId',
@@ -390,7 +390,7 @@ export const kit = createGraphyKit({
   ],
 });
 
-export const TreemapGraph = ({ input, data }: { input: CompilerInput; data: Data }) => {
+export const TreemapGraph = ({ input, data }: { input: SpecInput; data: Data }) => {
   return (
     <kit.GraphProvider input={input} data={data}>
       <GraphRenderer />

@@ -4,7 +4,7 @@ import remarkGfm from 'remark-gfm';
 import { mergeConfig } from 'vite';
 
 const config: StorybookConfig = {
-  stories: ['../src/**/*.mdx', '../src/**/*.stories.@(js|jsx|mjs|ts|tsx)'],
+  stories: ['../src/**/*.stories.@(js|jsx|mjs|ts|tsx)'],
   framework: {
     name: '@storybook/react-vite',
     options: {},
@@ -29,14 +29,14 @@ const config: StorybookConfig = {
     mergeConfig(viteConfig, {
       plugins: [vanillaExtractPlugin()],
       // Storybook 10's builder-vite injects a @vitest/mocker-based mocking runtime
-      // (vite-inject-mocker-entry.js) whose syntax esbuild can't downlevel to Vite's
+      // (vite-inject-mocker-entry.js) whose syntax cannot be downlevelled to Vite's
       // default 'es2020' target. Storybook is internal tooling, so target the modern
-      // engines its runtime already assumes and skip downleveling in both passes:
-      // the production build and dev-mode dependency pre-bundling.
+      // engines its runtime already assumes.
       build: { target: 'esnext' },
-      optimizeDeps: { esbuildOptions: { target: 'esnext' } },
+      optimizeDeps: {
+        include: ['styled-components', 'react-intl', 'd3-shape'],
+      },
     }),
 };
 
-// eslint-disable-next-line import-x/no-default-export
 export default config;

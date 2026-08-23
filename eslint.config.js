@@ -18,5 +18,13 @@ export default tseslint.config(
     rules: {
       ...reactHooks.configs.recommended.rules,
     },
+  },
+  {
+    files: ['**/*.stories.tsx'],
+    rules: {
+      // Storybook `render` callbacks are valid hook hosts; the monorepo eslint
+      // config does not flag them and rewriting every story is out of scope.
+      'react-hooks/rules-of-hooks': 'off',
+    },
   }
 );

@@ -7,10 +7,10 @@ import type {
   Data,
   DifferenceArrowLabelKind,
   DifferenceArrowSize,
-  GraphConfig,
   PanelOverflowStrategy,
 } from '@graphysdk/viz-engine';
 import { annotation, config, coord, createSpec, geom, mapping, pipe, scale, transform } from '@graphysdk/viz-engine';
+import type { GraphConfig } from '@graphysdk/viz-engine/graph-config';
 
 import { ResizablePlotDecorator } from '../../../addons/ResizablePlotDecorator';
 import { VizStoryGraphProvider } from '../../../components/VizStoryGraphProvider';

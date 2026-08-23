@@ -10,11 +10,11 @@ import {
 import type {
   CompiledGeom,
   CompiledLayer,
-  CompilerInput,
   Data,
   GeomCompilerInput,
   IdentityKey,
   Observation,
+  SpecInput,
 } from '@graphysdk/viz-engine';
 import {
   Dataset,
@@ -28,7 +28,7 @@ import {
 
 import { computeVoronoiLayout, type VoronoiPoint } from './voronoi-layout';
 
-/** The compile/render column vocabulary — the shared `*_COLUMNS` handshake (ADR-036 decision 7). */
+/** The compile/render column vocabulary — the shared `*_COLUMNS` handshake (ADR-039 decision 7). */
 const VORONOI_COLUMNS = {
   markId: 'markId',
   siteX: 'siteX',
@@ -353,7 +353,7 @@ export const kit = createGraphyKit({
   ],
 });
 
-export const VoronoiGraph = ({ input, data }: { input: CompilerInput; data: Data }) => {
+export const VoronoiGraph = ({ input, data }: { input: SpecInput; data: Data }) => {
   return (
     <kit.GraphProvider input={input} data={data}>
       <GraphRenderer />

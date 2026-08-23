@@ -1,11 +1,9 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import type { Meta, StoryObj } from '@storybook/react';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 
 import { GraphRenderer } from '@graphysdk/react-renderer';
-import type { Data, HighlightInput, HighlightScope, HighlightStyle, Predicate, SpecInput } from '@graphysdk/viz-engine';
+import type { Data, HighlightInput, HighlightScope, Predicate, SpecInput } from '@graphysdk/viz-engine';
 import {
-  config,
   coord,
   createSpec,
   geom,
@@ -14,18 +12,31 @@ import {
   pipe,
   prefixInternalVariable,
   scale,
+  style,
+  styles,
   transform,
 } from '@graphysdk/viz-engine';
 
 import { ResizablePlotDecorator } from '../../addons/ResizablePlotDecorator';
 import { VizStoryGraphProvider } from '../../components/VizStoryGraphProvider';
 
-type SharedArgs = { highlightStyle: HighlightStyle };
+type DimStyle = 'dim' | 'desaturate';
 
-const GRAPH_CONFIG_HIGHLIGHT_STYLE: Record<HighlightStyle, 'fade-color' | 'grey'> = {
+type SharedArgs = { highlightStyle: DimStyle };
+
+const GRAPH_CONFIG_HIGHLIGHT_STYLE: Record<DimStyle, 'fade-color' | 'grey'> = {
   dim: 'fade-color',
   desaturate: 'grey',
 };
+
+const dimStyles = (dimStyle: DimStyle) =>
+  styles({
+    defaults: [
+      dimStyle === 'desaturate'
+        ? style.geom({ saturation: 0, alpha: 0.6 }, { state: 'dimmed' })
+        : style.geom({ alpha: 0.4 }, { state: 'dimmed' }),
+    ],
+  });
 
 const meta: Meta<SharedArgs> = {
   title: 'Features/Highlights',
@@ -33,7 +44,7 @@ const meta: Meta<SharedArgs> = {
   argTypes: {
     highlightStyle: {
       control: { type: 'inline-radio' },
-      options: ['dim', 'desaturate'] satisfies HighlightStyle[],
+      options: ['dim', 'desaturate'] satisfies DimStyle[],
     },
   },
   args: {
@@ -90,6 +101,30 @@ const legacyReshapedData: Data = {
     { quarter: 'Q3', North: 400, South: 300, West: 300 },
     { quarter: 'Q4', North: 200, South: 150, West: 400 },
   ],
+};
+
+// ─── Regional sales (doc intro) ──────────────────────────────────────────────
+// The canonical highlight: dodged bars with the EU series kept vivid while the
+// rest fade. Backs the intro embed in the Highlights doc.
+
+export const RegionalSales: Story = {
+  name: 'Regional sales — highlight EU',
+  render: ({ highlightStyle }) => (
+    <VizStoryGraphProvider
+      data={regionalSalesData}
+      spec={pipe(
+        createSpec({ x: 'quarter', y: 'sales', color: 'region' }),
+        geom.bar({ position: 'dodge' }),
+        scale.x(),
+        scale.y(),
+        scale.color.palette(),
+        highlight({ variable: 'region', eq: 'EU' }),
+        dimStyles(highlightStyle)
+      )}
+    >
+      <GraphRenderer />
+    </VizStoryGraphProvider>
+  ),
 };
 
 // ─── Interactive playground ──────────────────────────────────────────────────
@@ -161,18 +196,21 @@ const SECONDARY_PREDICATES: Record<Exclude<PlaygroundSecondPredicate, 'none'>, P
   'variable-gte-2500': { variable: 'sales', gte: 2500 },
 };
 
+/** Naming the playground's single layer lets the `layer` knob scope a highlight to it by id. */
+const PLAYGROUND_LAYER_ID = 'playground-geom';
+
 const applyPlaygroundGeom = (kind: PlaygroundGeom) => {
   switch (kind) {
     case 'line':
-      return geom.line();
+      return geom.line({ id: PLAYGROUND_LAYER_ID });
     case 'area':
-      return geom.area();
+      return geom.area({ id: PLAYGROUND_LAYER_ID });
     case 'point':
-      return geom.point();
+      return geom.point({ id: PLAYGROUND_LAYER_ID });
     case 'bar-dodge':
-      return geom.bar({ position: 'dodge' });
+      return geom.bar({ id: PLAYGROUND_LAYER_ID, position: 'dodge' });
     case 'bar-stacked':
-      return geom.bar({ position: 'stack' });
+      return geom.bar({ id: PLAYGROUND_LAYER_ID, position: 'stack' });
     default:
       throw new Error(`Unknown geom kind: ${kind}`);
   }
@@ -221,7 +259,7 @@ export const Playground: StoryObj<PlaygroundArgs> = {
     layer: {
       control: { type: 'inline-radio' },
       options: ['all', 'first'] satisfies PlaygroundLayer[],
-      description: '"first" scopes the highlight to layerIndex 0.',
+      description: '"first" scopes the highlight to the geom layer by its `layerId`.',
       table: { category: 'Highlight' },
     },
     combineWith: {
@@ -250,24 +288,9 @@ export const Playground: StoryObj<PlaygroundArgs> = {
     combineWith: 'and',
   },
   render: ({ geom: geomKind, coordinate, predicate, scope, layer, secondPredicate, combineWith, highlightStyle }) => {
-    const [insertedQuarters, setInsertedQuarters] = useState(0);
-
-    const data = useMemo<Data>(() => {
-      const inserted: Data['rows'] = [];
-      for (let index = 0; index < insertedQuarters; index += 1) {
-        inserted.push({ quarter: `Q2.${index + 1}`, region: 'EU', sales: 1900 + index * 120 });
-        inserted.push({ quarter: `Q2.${index + 1}`, region: 'US', sales: 1750 + index * 90 });
-      }
-      const insertAt = 4;
-      return {
-        columns: regionalSalesData.columns,
-        rows: [...regionalSalesData.rows.slice(0, insertAt), ...inserted, ...regionalSalesData.rows.slice(insertAt)],
-      };
-    }, [insertedQuarters]);
-
-    const highlightOptions: { scope?: HighlightScope; layerIndex?: number } = {};
+    const highlightOptions: { scope?: HighlightScope; layerId?: string } = {};
     if (scope !== 'auto') highlightOptions.scope = scope;
-    if (layer === 'first') highlightOptions.layerIndex = 0;
+    if (layer === 'first') highlightOptions.layerId = PLAYGROUND_LAYER_ID;
 
     const primary = PREDICATES[predicate];
     const secondary = secondPredicate === 'none' ? null : SECONDARY_PREDICATES[secondPredicate];
@@ -293,48 +316,20 @@ export const Playground: StoryObj<PlaygroundArgs> = {
     const scaleSteps = isPolar ? [scale.x.discrete(), scale.y({ zero: true })] : [scale.x(), scale.y()];
 
     return (
-      <>
-        <div style={{ marginBottom: 8, display: 'flex', gap: 8, alignItems: 'center' }}>
-          <button
-            type="button"
-            onClick={() => setInsertedQuarters((count) => count + 1)}
-            style={{ padding: '4px 8px', borderRadius: 4, border: '1px solid #ccc', backgroundColor: '#f0f0f0' }}
-          >
-            Insert quarter between Q2 and Q3
-          </button>
-          <button
-            type="button"
-            onClick={() => setInsertedQuarters(0)}
-            disabled={insertedQuarters === 0}
-            style={{
-              padding: '4px 8px',
-              borderRadius: 4,
-              border: '1px solid #ccc',
-              backgroundColor: '#f0f0f0',
-              cursor: insertedQuarters === 0 ? 'not-allowed' : 'pointer',
-            }}
-          >
-            Reset
-          </button>
-          <span style={{ color: '#666', fontSize: 12 }}>
-            {insertedQuarters} quarter{insertedQuarters === 1 ? '' : 's'} inserted
-          </span>
-        </div>
-        <VizStoryGraphProvider
-          data={data}
-          spec={pipe(
-            createSpec({ x: 'quarter', y: 'sales', color: 'region' }),
-            applyPlaygroundGeom(geomKind),
-            ...coordSteps,
-            ...scaleSteps,
-            scale.color.palette(),
-            ...highlightItems,
-            config({ appearance: { highlightStyle } })
-          )}
-        >
-          <GraphRenderer />
-        </VizStoryGraphProvider>
-      </>
+      <VizStoryGraphProvider
+        data={regionalSalesData}
+        spec={pipe(
+          createSpec({ x: 'quarter', y: 'sales', color: 'region' }),
+          applyPlaygroundGeom(geomKind),
+          ...coordSteps,
+          ...scaleSteps,
+          scale.color.palette(),
+          ...highlightItems,
+          dimStyles(highlightStyle)
+        )}
+      >
+        <GraphRenderer />
+      </VizStoryGraphProvider>
     );
   },
 };
@@ -558,7 +553,7 @@ export const StressTest: StoryObj<StressTestArgs> = {
             scale.y(),
             scale.color.palette(),
             ...highlights,
-            config({ appearance: { highlightStyle } })
+            dimStyles(highlightStyle)
           ),
         };
       }
@@ -601,7 +596,7 @@ export const StressTest: StoryObj<StressTestArgs> = {
           scale.y(),
           scale.color.palette(),
           ...highlights,
-          config({ appearance: { highlightStyle } })
+          dimStyles(highlightStyle)
         ),
       };
     }, [
@@ -639,7 +634,7 @@ export const PolarBarSingleSlice: Story = {
         scale.y(),
         scale.color.palette(),
         highlight({ variable: 'segment', eq: 'Mobile' }),
-        config({ appearance: { highlightStyle } })
+        dimStyles(highlightStyle)
       )}
     >
       <GraphRenderer />
@@ -650,6 +645,7 @@ export const PolarBarSingleSlice: Story = {
 // ─── Combo: layer-scoped highlight ───────────────────────────────────────────
 
 const LINE_SERIES_LABEL_VARIABLE = prefixInternalVariable('lineSeriesLabel');
+const BAR_SERIES_LABEL_VARIABLE = prefixInternalVariable('barSeriesLabel');
 
 const comboData: Data = {
   columns: [{ key: 'month' }, { key: 'bars' }, { key: 'trend' }],
@@ -676,7 +672,18 @@ export const ComboLayerScoped: Story = {
       data={comboData}
       spec={pipe(
         createSpec({ x: 'month' }),
-        geom.bar({ aes: { y: 'bars' }, position: 'identity' }),
+        geom.bar({
+          id: 'bars',
+          transforms: [
+            transform.constant({
+              variableName: BAR_SERIES_LABEL_VARIABLE,
+              type: 'categorical',
+              value: 'bars',
+            }),
+          ],
+          aes: { y: 'bars', color: BAR_SERIES_LABEL_VARIABLE },
+          position: 'identity',
+        }),
         geom.line({
           transforms: [
             transform.constant({
@@ -690,10 +697,10 @@ export const ComboLayerScoped: Story = {
         scale.x(),
         scale.y(),
         scale.color.palette(),
-        // Q4-only highlight, bound to the bar layer (layerIndex 0). The trendline at the
-        // same x ticks is untouched — its layerId never matches this highlight.
-        highlight({ variable: 'month', oneOf: ['Oct', 'Nov', 'Dec'] }, { layerIndex: 0 }),
-        config({ appearance: { highlightStyle } })
+        // Q4-only highlight, bound to the bar layer by id. The trendline at the same x ticks
+        // is untouched — its layerId never matches this highlight.
+        highlight({ variable: 'month', oneOf: ['Oct', 'Nov', 'Dec'] }, { layerId: 'bars' }),
+        dimStyles(highlightStyle)
       )}
     >
       <GraphRenderer />

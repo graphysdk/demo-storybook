@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react';
 
-import { GraphRenderer, type ThemeOverrides } from '@graphysdk/react-renderer';
+import { type FontTokenOverride, GraphRenderer, type ThemeOverrides } from '@graphysdk/react-renderer';
 import type { Data } from '@graphysdk/viz-engine';
 import { config, createSpec, geom, mapping, pipe, scale, transform } from '@graphysdk/viz-engine';
 
@@ -42,7 +42,7 @@ const sharedSpec = pipe(
     }),
     mapping({ x: 'quarter', y: 'sales', color: 'region' })
   ),
-  geom.bar({ position: 'stack' }),
+  geom.bar({ position: 'stack', dataLabels: { showDataLabels: true, showStackTotals: true } }),
   scale.x(),
   scale.y(),
   scale.color.palette(),
@@ -54,11 +54,6 @@ const sharedConfig = { type: 'columnStacked', axes: { y: { label: 'sales' } } } 
 // ─── Controls ────────────────────────────────────────────────────────────────
 
 interface StyleTokenArgs {
-  // Grid (paint only)
-  gridLineWidth: number;
-  gridLineDash: string;
-  // Axis (structural)
-  tickLabelOffset: number;
   // Legend (structural)
   legendSwatchWidth: number;
   legendSwatchHeight: number;
@@ -73,6 +68,9 @@ interface StyleTokenArgs {
   tooltipPaddingBlock: number;
   tooltipPaddingInline: number;
   tooltipShadow: string;
+  // Fonts (structural — measurement follows paint)
+  fontLegendLabel: FontTokenOverride;
+  fontFamilyDefault: string;
 }
 
 const pxRange = (min: number, max: number, category: string, description: string) => ({
@@ -81,13 +79,20 @@ const pxRange = (min: number, max: number, category: string, description: string
   description,
 });
 
+// Storybook's raw JSON editor can deliver null for a valid "null" input.
+const hasFontFields = (override: FontTokenOverride | null | undefined): boolean =>
+  override !== null && override !== undefined && Object.keys(override).length > 0;
+
+const fontToken = (description: string) => ({
+  control: 'object' as const,
+  table: { category: 'Fonts (structural)' },
+  description: `${description} Structured override, e.g. { "weight": 600, "size": { "value": 14, "unit": "px" }, "family": "Georgia, serif" } (px sizes ignore text scale). Omitted fields keep the theme default. Moves JS measurement together with paint.`,
+});
+
 type Story = StoryObj<StyleTokenArgs>;
 
 export const Playground: Story = {
   args: {
-    gridLineWidth: 1,
-    gridLineDash: '2 3',
-    tickLabelOffset: 10,
     legendSwatchWidth: 10,
     legendSwatchHeight: 12,
     legendSwatchGap: 8,
@@ -100,20 +105,10 @@ export const Playground: Story = {
     tooltipPaddingBlock: 8,
     tooltipPaddingInline: 10,
     tooltipShadow: '0 4px 12px rgba(0, 0, 0, 0.18)',
+    fontLegendLabel: {},
+    fontFamilyDefault: '',
   },
   argTypes: {
-    gridLineWidth: pxRange(0, 6, 'Grid (paint)', 'Stroke width of the grid lines.'),
-    gridLineDash: {
-      control: 'text',
-      table: { category: 'Grid (paint)' },
-      description: 'SVG dash pattern, e.g. "2 3" or "" for a solid line.',
-    },
-    tickLabelOffset: pxRange(
-      0,
-      40,
-      'Axis (structural)',
-      'Gap between tick and tick label. Reserves axis band, so it also shrinks the plot.'
-    ),
     legendSwatchWidth: pxRange(4, 40, 'Legend (structural)', 'Swatch width; feeds the legend width measure.'),
     legendSwatchHeight: pxRange(4, 40, 'Legend (structural)', 'Swatch height; feeds the legend height measure.'),
     legendSwatchGap: pxRange(0, 24, 'Legend (structural)', 'Gap between a swatch and its label.'),
@@ -135,12 +130,11 @@ export const Playground: Story = {
       table: { category: 'Tooltip (paint, hover)' },
       description: 'Tooltip box-shadow.',
     },
+    fontLegendLabel: fontToken('Legend pill labels; the legend band follows the measured size.'),
+    fontFamilyDefault: fontToken('Base family cascading into every font token (family list only, no shorthand).'),
   },
   render: (args) => {
     const themeOverrides: ThemeOverrides = {
-      gridLineWidth: `${args.gridLineWidth}px`,
-      gridLineDash: args.gridLineDash,
-      tickLabelOffset: `${args.tickLabelOffset}px`,
       legendSwatchWidth: `${args.legendSwatchWidth}px`,
       legendSwatchHeight: `${args.legendSwatchHeight}px`,
       legendSwatchGap: `${args.legendSwatchGap}px`,
@@ -154,6 +148,9 @@ export const Playground: Story = {
       tooltipPaddingBlock: `${args.tooltipPaddingBlock}px`,
       tooltipPaddingInline: `${args.tooltipPaddingInline}px`,
       tooltipShadow: args.tooltipShadow,
+      // Empty text/colour controls keep the theme defaults.
+      ...(hasFontFields(args.fontLegendLabel) ? { fontLegendLabel: args.fontLegendLabel } : {}),
+      ...(args.fontFamilyDefault ? { fontFamilyDefault: args.fontFamilyDefault } : {}),
     };
 
     return (

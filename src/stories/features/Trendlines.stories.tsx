@@ -3,7 +3,7 @@ import { useMemo } from 'react';
 
 import { GraphRenderer } from '@graphysdk/react-renderer';
 import type { Data, SmoothMethod } from '@graphysdk/viz-engine';
-import { createSpec, geom, pipe, scale, stat, transform } from '@graphysdk/viz-engine';
+import { createSpec, geom, pipe, scale, stat, style, styles, transform } from '@graphysdk/viz-engine';
 
 import { ResizablePlotDecorator } from '../../addons/ResizablePlotDecorator';
 import { VizStoryGraphProvider } from '../../components/VizStoryGraphProvider';
@@ -265,22 +265,20 @@ export const FitSensitivityToSampleSize: StoryObj<FitSubsetArgs> = {
           // Background: every point, dim. Mirrors Plot.dot(cars, …).
           geom.point({
             aes: { alpha: { value: 0.2 } },
-            params: { size: 7 },
             interactive: false,
           }),
           // Foreground: the first m points, full opacity. Mirrors Plot.dot(cars.slice(0, m), …).
           geom.point({
             aes: { alpha: { value: 1 } },
             transforms: [transform.filter({ variableName: 'rowIndex', operator: 'lt', value: args.pointsInFit })],
-            params: { size: 7 },
           }),
+          styles({ defaults: [style.geom.point({ size: 7 }), style.geom.line({ strokeWidth: 2 })] }),
           // Regression fit on the first m points, red stroke. Mirrors Plot.linearRegressionY(…).
           geom.line({
             stat: stat.smooth({ method: args.method }),
             interactive: false,
             transforms: [transform.filter({ variableName: 'rowIndex', operator: 'lt', value: args.pointsInFit })],
             aes: { color: { value: 'red' }, lineType: { value: 'solid' } },
-            params: { lineWidth: 2 },
           }),
           scale.x(),
           scale.y()
@@ -349,7 +347,7 @@ export const MultiSeriesTrendlineToggle: StoryObj<MultiSeriesTrendArgs> = {
         data={data}
         spec={pipe(
           createSpec({ x: 'x', y: 'y', color: 'series' }),
-          geom.point({ params: { size: 6 } }),
+          geom.point(),
           geom.line({
             stat: stat.smooth({ method: args.method }),
             interactive: false,
@@ -357,8 +355,8 @@ export const MultiSeriesTrendlineToggle: StoryObj<MultiSeriesTrendArgs> = {
               transform.filter({ variableName: 'series', operator: 'neq', value: label })
             ),
             aes: { lineType: { value: 'dashed' } },
-            params: { lineWidth: 2 },
           }),
+          styles({ defaults: [style.geom.point({ size: 6 }), style.geom.line({ strokeWidth: 2 })] }),
           scale.x(),
           scale.y()
         )}
@@ -416,8 +414,8 @@ export const CategoricalXAxis: StoryObj<MethodOnlyArgs> = {
             stat: stat.smooth({ method: args.method }),
             interactive: false,
             aes: { color: { value: 'red' }, lineType: { value: 'dashed' } },
-            params: { lineWidth: 2 },
           }),
+          styles({ defaults: [style.geom.line({ strokeWidth: 2 })] }),
           scale.x(),
           scale.y()
         ),
@@ -462,13 +460,13 @@ export const TemporalXAxis: StoryObj<MethodOnlyArgs> = {
       () =>
         pipe(
           createSpec({ x: 'date', y: 'visitors' }),
-          geom.point({ params: { size: 6 } }),
+          geom.point(),
           geom.line({
             stat: stat.smooth({ method: args.method }),
             interactive: false,
             aes: { color: { value: 'red' }, lineType: { value: 'dashed' } },
-            params: { lineWidth: 2 },
           }),
+          styles({ defaults: [style.geom.point({ size: 6 }), style.geom.line({ strokeWidth: 2 })] }),
           scale.x(),
           scale.y()
         ),

@@ -5,16 +5,16 @@ import {
   defineGeomRenderer,
   type GeomHoverPush,
   GraphRenderer,
-  type PanelScreenRect,
+  type ScreenRect,
 } from '@graphysdk/react-renderer';
 import type {
   CompiledGeom,
   CompiledLayer,
-  CompilerInput,
   Data,
   Dataset,
   GeomCompilerInput,
   IdentityKey,
+  SpecInput,
 } from '@graphysdk/viz-engine';
 import {
   createDatasetFromKindPartitions,
@@ -27,7 +27,7 @@ import {
 
 import { ALPHA_MIN, ForceSimulation, type SimEdge } from './force-layout';
 
-/** The compile/render column vocabulary — the shared `*_COLUMNS` handshake (ADR-036 decision 7). */
+/** The compile/render column vocabulary — the shared `*_COLUMNS` handshake (ADR-039 decision 7). */
 const FORCE_COLUMNS = {
   kind: 'kind',
   markId: 'markId',
@@ -271,7 +271,7 @@ const ForceOverlay = ({
   pushHover,
 }: {
   layer: CompiledLayer;
-  rect: PanelScreenRect;
+  rect: ScreenRect;
   pushHover: GeomHoverPush;
 }) => {
   const { nodes, edges } = useMemo(() => partition(layer.data), [layer.data]);
@@ -293,7 +293,7 @@ const ForceCanvas = ({
   edges,
   params,
 }: {
-  rect: PanelScreenRect;
+  rect: ScreenRect;
   pushHover: GeomHoverPush;
   nodes: GraphNode[];
   edges: GraphEdge[];
@@ -560,7 +560,7 @@ export const kit = createGraphyKit({
   ],
 });
 
-export const ForceDirectedGraph = ({ input, data }: { input: CompilerInput; data: Data }) => {
+export const ForceDirectedGraph = ({ input, data }: { input: SpecInput; data: Data }) => {
   return (
     <kit.GraphProvider input={input} data={data}>
       <GraphRenderer />

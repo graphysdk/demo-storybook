@@ -1,0 +1,102 @@
+.trail {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding-block-start: 12px;
+  font-size: 11px;
+}
+
+/*
+ * The steps scroll; the buttons do not, so undo stays where the pointer left it.
+ *
+ * The scrollbar itself is hidden. It sits under a single row of pills and takes as much height as
+ * they do, and the trail scrolls itself to the cursor anyway, so it costs a row of chart height to
+ * say something the pills already say.
+ */
+.steps {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-inline-size: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.steps::-webkit-scrollbar {
+  display: none;
+}
+
+.empty {
+  opacity: 0.5;
+}
+
+.button {
+  flex-shrink: 0;
+  font: inherit;
+  padding: 4px 10px;
+  border-radius: 6px;
+  border: 1px solid rgb(0 0 0 / 0.15);
+  background: transparent;
+  cursor: pointer;
+}
+
+.button:hover:not(:disabled) {
+  background: rgb(0 0 0 / 0.04);
+}
+
+.button:active:not(:disabled) {
+  background: rgb(0 0 0 / 0.09);
+}
+
+.button:focus-visible {
+  outline: 2px solid rgb(124 58 237 / 0.6);
+  outline-offset: 1px;
+}
+
+/* Nothing left to reverse. Dimmed *and* not-allowed: the cursor is the only part of that a pointer
+   finds out before clicking. */
+.button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.step {
+  flex-shrink: 0;
+  font: inherit;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.step:hover {
+  border-color: rgb(124 58 237 / 0.5);
+}
+
+.step:focus-visible {
+  outline: 2px solid rgb(124 58 237 / 0.6);
+  outline-offset: 1px;
+}
+
+/* Applied, and every one of them is a place the chart can be sent back to. */
+.applied {
+  background: rgb(0 0 0 / 0.06);
+}
+
+/* Where the chart stands: an undo starts here. Not clickable, since it is already the answer. */
+.current {
+  background: rgb(124 58 237 / 0.15);
+  font-weight: 600;
+  cursor: default;
+}
+
+.current:hover {
+  border-color: transparent;
+}
+
+/* Undone, still ahead of the cursor: a redo walks back into these. */
+.undone {
+  border: 1px dashed rgb(0 0 0 / 0.2);
+  opacity: 0.55;
+}

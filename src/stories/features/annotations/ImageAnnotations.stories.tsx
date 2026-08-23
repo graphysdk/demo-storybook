@@ -6,17 +6,16 @@ import type {
   AnnotationItem,
   AnnotationZOrder,
   Data,
-  GraphConfig,
   ImageAnnotationFit,
   RichTextContent,
 } from '@graphysdk/viz-engine';
 import { annotation, config, createSpec, geom, mapping, pipe, scale, transform } from '@graphysdk/viz-engine';
+import type { GraphConfig } from '@graphysdk/viz-engine/graph-config';
 
 import { ResizablePlotDecorator } from '../../../addons/ResizablePlotDecorator';
+import lightning from '../../../assets/lightning-sticker.png';
+import smile from '../../../assets/smiley-sticker.png';
 import { VizStoryGraphProvider } from '../../../components/VizStoryGraphProvider';
-
-import lightning from './assets/lightning-sticker.png';
-import smile from './assets/smiley-sticker.png';
 
 interface ImageAnnotationsArgs {
   src: string;
@@ -187,31 +186,29 @@ export const Fit: Story = {
           backgroundColorStyle: 'opaque',
         }),
       ]);
-      const configAnnotations = fitDemos.flatMap(
-        ({ fit, x }): NonNullable<GraphConfig['annotations']> => [
-          {
-            id: `image-${fit}`,
-            type: 'image',
-            src: smile,
-            layer: 'abovePlot',
-            x,
-            y: 0.08,
-            width: 0.24,
-            height: 0.5,
-            fit,
-          },
-          {
-            id: `label-${fit}`,
-            type: 'text',
-            content: buildTextContent(fit),
-            x,
-            y: 0.62,
-            width: 0.24,
-            backgroundColor: '#fff59d',
-            backgroundColorStyle: 'opaque',
-          },
-        ]
-      );
+      const configAnnotations = fitDemos.flatMap(({ fit, x }): NonNullable<GraphConfig['annotations']> => [
+        {
+          id: `image-${fit}`,
+          type: 'image',
+          src: smile,
+          layer: 'abovePlot',
+          x,
+          y: 0.08,
+          width: 0.24,
+          height: 0.5,
+          fit,
+        },
+        {
+          id: `label-${fit}`,
+          type: 'text',
+          content: buildTextContent(fit),
+          x,
+          y: 0.62,
+          width: 0.24,
+          backgroundColor: '#fff59d',
+          backgroundColorStyle: 'opaque',
+        },
+      ]);
       return {
         spec: buildSpec(specAnnotations),
         configForApi: buildConfigForApi(configAnnotations),

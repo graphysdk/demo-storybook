@@ -2,7 +2,7 @@ import type { Meta, StoryObj } from '@storybook/react';
 
 import { GraphRenderer } from '@graphysdk/react-renderer';
 import type { Data, LineStyleType, RuleLabelPosition } from '@graphysdk/viz-engine';
-import { coord, createSpec, geom, pipe, scale } from '@graphysdk/viz-engine';
+import { coord, createSpec, geom, pipe, scale, style, styles } from '@graphysdk/viz-engine';
 
 import { ResizablePlotDecorator } from '../../addons/ResizablePlotDecorator';
 import { VizStoryGraphProvider } from '../../components/VizStoryGraphProvider';
@@ -61,7 +61,7 @@ export const HorizontalGoalLine: StoryObj<HorizontalRuleArgs> = {
       description: 'Y-value the reference line marks. Drag past the data peak to see auto-domain extend.',
     },
     label: { control: 'text', description: 'Optional inline label. Leave blank to hide.' },
-    color: { control: 'color', description: 'Stroke color. Empty falls back to the theme target-line color.' },
+    color: { control: 'color', description: 'Stroke color. Empty falls back to the built-in rule color.' },
     strokeWidth: { control: { type: 'range', min: 1, max: 8, step: 1 } },
     lineType: lineTypeControl,
     labelPosition: labelPositionControl,
@@ -84,11 +84,17 @@ export const HorizontalGoalLine: StoryObj<HorizontalRuleArgs> = {
           aes: { y: { value: args.target } },
           params: {
             label: args.label || undefined,
-            color: args.color || undefined,
-            strokeWidth: args.strokeWidth,
-            lineType: args.lineType,
             labelPosition: args.labelPosition,
           },
+        }),
+        styles({
+          defaults: [
+            style.geom.rule({
+              ...(args.color ? { color: args.color } : {}),
+              strokeWidth: args.strokeWidth,
+              lineType: args.lineType,
+            }),
+          ],
         }),
         scale.x(),
         scale.y()
@@ -136,11 +142,17 @@ export const HorizontalBarGoalLine: StoryObj<HorizontalRuleArgs> = {
           aes: { y: { value: args.target } },
           params: {
             label: args.label || undefined,
-            color: args.color || undefined,
-            strokeWidth: args.strokeWidth,
-            lineType: args.lineType,
             labelPosition: args.labelPosition,
           },
+        }),
+        styles({
+          defaults: [
+            style.geom.rule({
+              ...(args.color ? { color: args.color } : {}),
+              strokeWidth: args.strokeWidth,
+              lineType: args.lineType,
+            }),
+          ],
         }),
         scale.x(),
         scale.y(),
@@ -212,11 +224,17 @@ export const VerticalThreshold: StoryObj<VerticalRuleArgs> = {
           aes: { x: { value: args.threshold } },
           params: {
             label: args.label || undefined,
-            color: args.color || undefined,
-            strokeWidth: args.strokeWidth,
-            lineType: args.lineType,
             labelPosition: args.labelPosition,
           },
+        }),
+        styles({
+          defaults: [
+            style.geom.rule({
+              ...(args.color ? { color: args.color } : {}),
+              strokeWidth: args.strokeWidth,
+              lineType: args.lineType,
+            }),
+          ],
         }),
         scale.x(),
         scale.y()
@@ -238,7 +256,8 @@ interface MultipleRulesArgs {
 /**
  * Three stacked reference lines (floor / target / ceiling) layered on the same chart.
  * Layers compose declaratively — paint order matches the spec order, so the rules added
- * after `geom.bar()` render in front of the bars.
+ * after `geom.bar()` render in front of the bars. The floor and ceiling carry authored layer
+ * ids, so layer-targeted style entries can dot them while the target keeps the built-in dash.
  */
 export const MultipleRules: StoryObj<MultipleRulesArgs> = {
   argTypes: {
@@ -256,8 +275,9 @@ export const MultipleRules: StoryObj<MultipleRulesArgs> = {
         ...(args.showFloor
           ? [
               geom.rule({
+                id: 'floor',
                 aes: { y: { value: 1000 } },
-                params: { label: 'Floor', lineType: 'dotted', labelPosition: 'start' },
+                params: { label: 'Floor', labelPosition: 'start' },
               }),
             ]
           : []),
@@ -265,11 +285,18 @@ export const MultipleRules: StoryObj<MultipleRulesArgs> = {
         ...(args.showCeiling
           ? [
               geom.rule({
+                id: 'ceiling',
                 aes: { y: { value: 3500 } },
-                params: { label: 'Ceiling', lineType: 'dotted' },
+                params: { label: 'Ceiling' },
               }),
             ]
           : []),
+        styles({
+          defaults: [
+            ...(args.showFloor ? [style.geom.rule({ lineType: 'dotted' }, { layer: 'floor' })] : []),
+            ...(args.showCeiling ? [style.geom.rule({ lineType: 'dotted' }, { layer: 'ceiling' })] : []),
+          ],
+        }),
         scale.x(),
         scale.y()
       )}

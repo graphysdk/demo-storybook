@@ -5,6 +5,7 @@ import { GraphRenderer } from '@graphysdk/react-renderer';
 import type {
   CalloutMeasurer,
   CartesianCoordSystem,
+  CommentAnnotationInput,
   Data,
   PinnedNumberAnnotationInput,
   PlacedCallout,
@@ -36,7 +37,7 @@ export default meta;
 const heuristic = new HeuristicTextMeasurer();
 const measurer: CalloutMeasurer = (_kind, text) => {
   const measured = heuristic.measureText(text, { family: 'Inter', size: 13 });
-  return { width: measured.width + 16, height: measured.height + 10 };
+  return { width: measured.width + 16, height: measured.height + 10, text };
 };
 
 const makeAnchor = (
@@ -46,9 +47,11 @@ const makeAnchor = (
 ): ResolvedObservationPoint => ({
   x,
   y,
+  anchor: { layerId: 'layer-0', anchorValue: `${x}` },
   geom: geomKind,
   measurementValue: 0,
   valueFormat: { type: 'decimal' },
+  yScaleType: 'primary',
   color: undefined,
 });
 
@@ -361,6 +364,92 @@ export const PinnedNumbersPolar: StoryObj = {
     } satisfies SpecInput;
     return (
       <VizStoryGraphProvider data={departmentData} spec={spec}>
+        <GraphRenderer />
+      </VizStoryGraphProvider>
+    );
+  },
+};
+
+// --- Comments ------------------------------------------------------------------------------
+
+const commentContent = (text: string): CommentAnnotationInput['content'] => ({
+  type: 'doc',
+  content: [{ type: 'paragraph', content: [{ type: 'text', text }] }],
+});
+
+export const Comments: StoryObj = {
+  name: 'Comments — text pinned to observations',
+  decorators: [ResizablePlotDecorator],
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'A comment paints a marker dot plus a one-line bubble. Text wider than the bubble cap ellipsizes; hover one to read the whole comment above the observation’s reading.',
+      },
+    },
+  },
+  render: () => {
+    const baseSpec = pipe(
+      createSpec(mapping({ x: 'quarter', y: 'revenue', color: 'quarter' })),
+      geom.bar({ position: 'identity' }),
+      scale.x(),
+      scale.y(),
+      scale.color.palette(),
+      config({})
+    );
+    const spec = {
+      ...baseSpec,
+      annotations: {
+        comments: [
+          { id: 'comment-q1', at: { anchorValue: 'Q1' }, content: commentContent('Soft start') },
+          {
+            id: 'comment-q3',
+            at: { anchorValue: 'Q3' },
+            content: commentContent('Margins slipped through the quarter after the supplier move, then recovered'),
+          },
+        ],
+      },
+    } satisfies SpecInput;
+    return (
+      <VizStoryGraphProvider data={quarterlyData} spec={spec}>
+        <GraphRenderer />
+      </VizStoryGraphProvider>
+    );
+  },
+};
+
+export const CommentsAndPinnedNumbers: StoryObj = {
+  name: 'Comments + pinned numbers — one placement pass',
+  decorators: [ResizablePlotDecorator],
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Both kinds compete for the same space in a single sweep, so a comment and a value on neighbouring bars claim different directions rather than overlapping.',
+      },
+    },
+  },
+  render: () => {
+    const baseSpec = pipe(
+      createSpec(mapping({ x: 'quarter', y: 'revenue', color: 'quarter' })),
+      geom.bar({ position: 'identity' }),
+      scale.x(),
+      scale.y(),
+      scale.color.palette(),
+      config({})
+    );
+    const spec = {
+      ...baseSpec,
+      annotations: {
+        pinnedNumbers: pinnedNumbersFor(['Q2', 'Q4']),
+        comments: [
+          { id: 'comment-q1', at: { anchorValue: 'Q1' }, content: commentContent('Soft start') },
+          { id: 'comment-q3', at: { anchorValue: 'Q3' }, content: commentContent('Supplier switch') },
+        ],
+      },
+    } satisfies SpecInput;
+    return (
+      <VizStoryGraphProvider data={quarterlyData} spec={spec}>
         <GraphRenderer />
       </VizStoryGraphProvider>
     );
